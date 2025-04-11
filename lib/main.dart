@@ -2,7 +2,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'views/login.dart';
 import 'views/home.dart'; // crie uma tela qualquer pra teste
-import 'services/database.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -12,12 +11,9 @@ void main() async {
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginView(),
-      initialRoute: '/login',
-      routes: {
-        '/login': (context) => LoginView(),
-        '/home': (_) => HomeView(), // depois você cria esse widget
-      },
+      home: HomeView(),
+      initialRoute: '/home',
+      routes: {'/login': (context) => LoginView(), '/home': (_) => HomeView()},
     ),
   );
 }
