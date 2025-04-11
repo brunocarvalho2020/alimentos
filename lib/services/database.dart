@@ -4,8 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 Future<void> adicionaProduto(
   String nome,
   String descricao,
-  Double preco,
-  Int quantidade,
+  double preco,
+  int quantidade,
 ) async {
   await FirebaseFirestore.instance.collection('produtos').add({
     'nome': nome,
