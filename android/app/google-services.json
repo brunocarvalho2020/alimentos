@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "610338153490",
+    "project_id": "alimentos-d0d51",
+    "storage_bucket": "alimentos-d0d51.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:610338153490:android:b5c541d41478d528d5e4cb",
+        "android_client_info": {
+          "package_name": "alimentos.monlevade"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAym00J8rBvaFSjGgoVRP4cM-P614Gk1Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
