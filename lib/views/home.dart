@@ -62,7 +62,7 @@ class _HomeViewState extends State<HomeView> {
           children: [
             Icon(Icons.home, size: 80, color: Colors.blue),
             SizedBox(height: 20),
-            Text('Você está logado!', style: TextStyle(fontSize: 22)),
+            Text('Página Inicial', style: TextStyle(fontSize: 22)),
             SizedBox(height: 40),
             ElevatedButton(
               onPressed: () {
