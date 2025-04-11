@@ -11,6 +11,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   String? userType;
+  String? userName;
   bool isLoading = true;
   User? currentUser;
 
@@ -32,8 +33,10 @@ class _HomeViewState extends State<HomeView> {
 
       setState(() {
         userType = doc.data()?['userType'] ?? 'cliente';
+        userName = doc.data()?['name'] ?? 'Usuário';
         isLoading = false;
       });
+      print(userName);
     } else {
       setState(() => isLoading = false);
     }
@@ -48,22 +51,31 @@ class _HomeViewState extends State<HomeView> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text('Bem-vindo!'),
+        title: Text('Olá, ${userName ?? 'Visitante'}!'),
         actions: [
-          if (currentUser != null)
-            IconButton(
-              icon: Icon(Icons.logout),
-              onPressed: () async {
+          PopupMenuButton<String>(
+            icon: Icon(Icons.more_vert),
+            onSelected: (value) async {
+              if (value == 'conta') {
+                Navigator.pushNamed(context, '/minha-conta');
+              } else if (value == 'sair') {
                 await FirebaseAuth.instance.signOut();
                 setState(() {
                   currentUser = null;
                   userType = null;
+                  userName = null;
                 });
-                Navigator.pushReplacementNamed(context, '/login');
-              },
-            ),
+              }
+            },
+            itemBuilder:
+                (context) => [
+                  PopupMenuItem(value: 'conta', child: Text('Minha conta')),
+                  PopupMenuItem(value: 'sair', child: Text('Sair')),
+                ],
+          ),
         ],
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
