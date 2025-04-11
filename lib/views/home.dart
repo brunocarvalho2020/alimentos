@@ -12,21 +12,24 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   String? userType;
   bool isLoading = true;
+  User? currentUser;
 
   @override
   void initState() {
     super.initState();
-    _loadUserType();
+    _loadUserData();
   }
 
-  Future<void> _loadUserType() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
+  Future<void> _loadUserData() async {
+    currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
       final doc =
           await FirebaseFirestore.instance
               .collection('users')
-              .doc(user.uid)
+              .doc(currentUser!.uid)
               .get();
+
       setState(() {
         userType = doc.data()?['userType'] ?? 'cliente';
         isLoading = false;
@@ -47,13 +50,17 @@ class _HomeViewState extends State<HomeView> {
         automaticallyImplyLeading: false,
         title: Text('Bem-vindo!'),
         actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              Navigator.pushReplacementNamed(context, '/login');
-            },
-          ),
+          if (currentUser != null)
+            IconButton(
+              icon: Icon(Icons.logout),
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                setState(() {
+                  currentUser = null;
+                  userType = null;
+                });
+              },
+            ),
         ],
       ),
       body: Center(
@@ -62,23 +69,38 @@ class _HomeViewState extends State<HomeView> {
           children: [
             Icon(Icons.home, size: 80, color: Colors.blue),
             SizedBox(height: 20),
-            Text('Página Inicial', style: TextStyle(fontSize: 22)),
+            Text(
+              currentUser != null
+                  ? 'Você está logado!'
+                  : 'Bem-vindo! Faça login para acessar mais recursos.',
+              style: TextStyle(fontSize: 22),
+              textAlign: TextAlign.center,
+            ),
             SizedBox(height: 40),
             ElevatedButton(
               onPressed: () {
-                // Navegar para outra tela
+                // Outra tela opcional
               },
               child: Text('Ir para outra tela'),
             ),
             SizedBox(height: 20),
 
-            // Mostra o botão se for dono
+            // Se for dono, mostra botão para gerenciar o estabelecimento
             if (userType == 'dono')
               ElevatedButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/gerenciar-estabelecimento');
                 },
                 child: Text('Gerenciar meu estabelecimento'),
+              ),
+
+            // Se ainda não está logado, mostra botão para login
+            if (currentUser == null)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/login');
+                },
+                child: Text('Fazer login'),
               ),
           ],
         ),
