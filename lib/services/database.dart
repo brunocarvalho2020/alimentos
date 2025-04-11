@@ -1,10 +1,17 @@
+import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-void adicionarDados() {
-  FirebaseFirestore.instance.collection('usuarios').add({
-    'nome': 'Maria',
-    'idade': 30,
-    'endereco': 'Padre Pinto, Lucilia',
-    'wpp': '31999701709',
+Future<void> adicionaProduto(
+  String nome,
+  String descricao,
+  Double preco,
+  Int quantidade,
+) async {
+  await FirebaseFirestore.instance.collection('produtos').add({
+    'nome': nome,
+    'descricao': descricao,
+    'preco': preco,
+    'quantidade': quantidade,
   });
 }
