@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/database.dart';
 
 class ManageStoreScreen extends StatefulWidget {
   const ManageStoreScreen({super.key});
@@ -33,6 +34,69 @@ class _ManageStoreScreenState extends State<ManageStoreScreen> {
         isLoading = false;
       });
     }
+  }
+
+  void _recebeProduto(BuildContext context) {
+    final nomeController = TextEditingController();
+    final precoController = TextEditingController();
+    final descricaoController = TextEditingController();
+    final quantidadeController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Cadastrar Produto'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextField(
+                  controller: nomeController,
+                  decoration: InputDecoration(labelText: 'Nome'),
+                ),
+                TextField(
+                  controller: precoController,
+                  decoration: InputDecoration(labelText: 'Preço'),
+                  keyboardType: TextInputType.number,
+                ),
+                TextField(
+                  controller: descricaoController,
+                  decoration: InputDecoration(labelText: 'Descrição'),
+                ),
+                TextField(
+                  controller: quantidadeController,
+                  decoration: InputDecoration(labelText: 'Quantidade'),
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // fecha o diálogo
+              },
+              child: Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final nome = nomeController.text;
+                final preco = double.tryParse(precoController.text) ?? 0.0;
+                final descricao = descricaoController.text;
+                final quantidade = int.tryParse(quantidadeController.text) ?? 0;
+
+                adicionaProduto(nome, preco, descricao, quantidade);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Produto "$nome" cadastrado!')),
+                );
+              },
+              child: Text('Salvar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -68,7 +132,7 @@ class _ManageStoreScreenState extends State<ManageStoreScreen> {
                     SizedBox(height: 30),
                     ElevatedButton.icon(
                       onPressed: () {
-                        // Aqui depois você pode navegar para a tela de cadastro de produtos
+                        _recebeProduto(context);
                       },
                       icon: Icon(Icons.add_business),
                       label: Text('Adicionar produto'),
