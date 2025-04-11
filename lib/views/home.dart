@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -7,15 +8,17 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false, // remove o botão de voltar
         title: Text('Bem-vindo!'),
         actions: [
           IconButton(
             icon: Icon(Icons.logout),
-            onPressed: () {
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
               Navigator.pushReplacementNamed(
                 context,
-                '/',
-              ); // volta para o login
+                '/login',
+              ); // ou qualquer rota que leve ao login
             },
           ),
         ],
