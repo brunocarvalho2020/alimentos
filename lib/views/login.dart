@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:teste_app/views/register.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -88,6 +89,15 @@ class _LoginViewState extends State<LoginView> {
                 padding: const EdgeInsets.only(top: 16),
                 child: Text(_erro!, style: TextStyle(color: Colors.red)),
               ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => RegisterScreen()),
+                );
+              },
+              child: Text('Registrar'),
+            ),
           ],
         ),
       ),

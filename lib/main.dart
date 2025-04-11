@@ -7,12 +7,13 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  print("Firebase inicializado com sucesso!");
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,
       home: LoginView(),
+      initialRoute: '/login',
       routes: {
+        '/login': (context) => LoginView(),
         '/home': (_) => HomeView(), // depois você cria esse widget
       },
     ),
