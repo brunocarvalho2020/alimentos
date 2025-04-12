@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../controllers/carrinho_controller.dart';
 import '../models/carrinho_model.dart';
 import '../views/carrinho.dart';
+import '../controllers/home_controller.dart';
 
 List<Map<String, dynamic>> carrinho = [];
 final CarrinhoController carrinhoController = CarrinhoController();
@@ -16,15 +16,12 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  String? userType;
-  String? userName;
-  bool isLoading = true;
-  User? currentUser;
+  final HomeController homeController = HomeController();
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    homeController.loadUserData().then((_) => setState(() {}));
   }
 
   void adicionarAoCarrinho(Map<String, dynamic> produto) {
@@ -39,37 +36,16 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Future<void> _loadUserData() async {
-    currentUser = FirebaseAuth.instance.currentUser;
-
-    if (currentUser != null) {
-      final doc =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(currentUser!.uid)
-              .get();
-
-      setState(() {
-        userType = doc.data()?['userType'] ?? 'cliente';
-        userName = doc.data()?['name'] ?? 'Usuário';
-        isLoading = false;
-      });
-      print(userName);
-    } else {
-      setState(() => isLoading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    if (homeController.isLoading) {
       return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text('Olá, ${userName ?? 'Visitante'}!'),
+        title: Text('Olá, ${homeController.userName ?? 'Visitante'}!'),
         actions: [
           IconButton(
             icon: Icon(Icons.shopping_cart),
@@ -90,12 +66,8 @@ class _HomeViewState extends State<HomeView> {
               if (value == 'conta') {
                 Navigator.pushNamed(context, '/minha-conta');
               } else if (value == 'sair') {
-                await FirebaseAuth.instance.signOut();
-                setState(() {
-                  currentUser = null;
-                  userType = null;
-                  userName = null;
-                });
+                await homeController.logout();
+                setState(() {});
               }
             },
             itemBuilder:
@@ -106,7 +78,6 @@ class _HomeViewState extends State<HomeView> {
           ),
         ],
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -118,14 +89,14 @@ class _HomeViewState extends State<HomeView> {
                   Icon(Icons.home, size: 80, color: Colors.blue),
                   SizedBox(height: 20),
                   Text(
-                    currentUser != null
+                    homeController.currentUser != null
                         ? 'Você está logado!'
                         : 'Bem-vindo! Faça login para acessar mais recursos.',
                     style: TextStyle(fontSize: 22),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 20),
-                  if (userType == 'dono')
+                  if (homeController.userType == 'dono')
                     ElevatedButton(
                       onPressed: () {
                         Navigator.pushNamed(
@@ -135,7 +106,7 @@ class _HomeViewState extends State<HomeView> {
                       },
                       child: Text('Gerenciar meu estabelecimento'),
                     ),
-                  if (currentUser == null)
+                  if (homeController.currentUser == null)
                     ElevatedButton(
                       onPressed: () {
                         Navigator.pushNamed(context, '/login');
@@ -153,10 +124,7 @@ class _HomeViewState extends State<HomeView> {
             SizedBox(height: 10),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream:
-                    FirebaseFirestore.instance
-                        .collection('produtos')
-                        .snapshots(),
+                stream: homeController.getProdutosStream(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
