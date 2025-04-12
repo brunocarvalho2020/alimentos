@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class CarrinhoScreen extends StatefulWidget {
@@ -16,6 +17,18 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
       0,
       (soma, item) => soma + (item['preco'] ?? 0),
     );
+
+    void finalizarCompra() {
+      setState(() {
+        widget.carrinho.clear();
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Compra finalizada!')));
+
+      Navigator.pop(context);
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text('Carrinho de Compras')),
@@ -56,14 +69,24 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                         ),
                         SizedBox(height: 10),
                         ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              widget.carrinho.clear();
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Compra finalizada!')),
-                            );
-                            Navigator.pop(context);
+                          onPressed: () async {
+                            final user = FirebaseAuth.instance.currentUser;
+
+                            if (user == null) {
+                              // Usuário não está logado → redireciona para tela de login
+                              final shouldContinue = await Navigator.pushNamed(
+                                context,
+                                '/login',
+                              );
+
+                              // Se o login for bem-sucedido, continue a compra
+                              if (shouldContinue == true) {
+                                finalizarCompra();
+                              }
+                            } else {
+                              // Já está logado → finaliza compra direto
+                              finalizarCompra();
+                            }
                           },
                           child: Text('Finalizar Compra'),
                         ),

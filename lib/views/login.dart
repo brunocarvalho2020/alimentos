@@ -24,9 +24,9 @@ class _LoginViewState extends State<LoginView> {
         password: _senhaController.text.trim(),
       );
 
-      // Login ok: navega pra home
+      // Login ok → retorna para a tela anterior com resultado true
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pop(context, true);
       }
     } on FirebaseAuthException catch (e) {
       String msg = 'Erro no login';
