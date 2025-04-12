@@ -1,57 +1,55 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../controllers/carrinho_controller.dart';
 
 class CarrinhoScreen extends StatefulWidget {
-  final List<Map<String, dynamic>> carrinho;
+  final CarrinhoController controller;
 
-  const CarrinhoScreen({super.key, required this.carrinho});
+  const CarrinhoScreen({super.key, required this.controller});
 
   @override
   State<CarrinhoScreen> createState() => _CarrinhoScreenState();
 }
 
 class _CarrinhoScreenState extends State<CarrinhoScreen> {
+  void finalizarCompra() {
+    setState(() {
+      widget.controller.limpar();
+    });
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Compra finalizada!')));
+
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
-    double total = widget.carrinho.fold(
-      0,
-      (soma, item) => soma + (item['preco'] ?? 0),
-    );
-
-    void finalizarCompra() {
-      setState(() {
-        widget.carrinho.clear();
-      });
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Compra finalizada!')));
-
-      Navigator.pop(context);
-    }
+    final itens = widget.controller.itens;
 
     return Scaffold(
       appBar: AppBar(title: Text('Carrinho de Compras')),
       body:
-          widget.carrinho.isEmpty
+          widget.controller.estaVazio
               ? Center(child: Text('Seu carrinho está vazio.'))
               : Column(
                 children: [
                   Expanded(
                     child: ListView.builder(
-                      itemCount: widget.carrinho.length,
+                      itemCount: itens.length,
                       itemBuilder: (context, index) {
-                        final item = widget.carrinho[index];
+                        final item = itens[index];
                         return ListTile(
-                          title: Text(item['nome']),
+                          title: Text(item.nome),
                           subtitle: Text(
-                            'R\$ ${item['preco'].toStringAsFixed(2)}',
+                            'R\$ ${item.preco.toStringAsFixed(2)}',
                           ),
                           trailing: IconButton(
                             icon: Icon(Icons.delete),
                             onPressed: () {
                               setState(() {
-                                widget.carrinho.removeAt(index);
+                                widget.controller.remover(index);
                               });
                             },
                           ),
@@ -64,7 +62,7 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                     child: Column(
                       children: [
                         Text(
-                          'Total: R\$ ${total.toStringAsFixed(2)}',
+                          'Total: R\$ ${widget.controller.total.toStringAsFixed(2)}',
                           style: TextStyle(fontSize: 18),
                         ),
                         SizedBox(height: 10),
@@ -79,12 +77,10 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                                 '/login',
                               );
 
-                              // Se o login for bem-sucedido, continue a compra
                               if (shouldContinue == true) {
                                 finalizarCompra();
                               }
                             } else {
-                              // Já está logado → finaliza compra direto
                               finalizarCompra();
                             }
                           },
