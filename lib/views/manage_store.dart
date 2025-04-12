@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/database.dart';
+import 'package:image_picker/image_picker.dart';
+import 'carrinho.dart';
+
+List<Map<String, dynamic>> carrinho = [];
 
 class ManageStoreScreen extends StatefulWidget {
   const ManageStoreScreen({super.key});
@@ -14,6 +18,7 @@ class _ManageStoreScreenState extends State<ManageStoreScreen> {
   final user = FirebaseAuth.instance.currentUser;
   Map<String, dynamic>? userData;
   bool isLoading = true;
+  List<XFile> imagensSelecionadas = [];
 
   @override
   void initState() {
@@ -49,6 +54,7 @@ class _ManageStoreScreenState extends State<ManageStoreScreen> {
           title: Text('Cadastrar Produto'),
           content: SingleChildScrollView(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nomeController,
@@ -68,6 +74,27 @@ class _ManageStoreScreenState extends State<ManageStoreScreen> {
                   decoration: InputDecoration(labelText: 'Quantidade'),
                   keyboardType: TextInputType.number,
                 ),
+                SizedBox(height: 12),
+                /*ElevatedButton.icon(
+                  onPressed: selecionarImagens,
+                  icon: Icon(Icons.image),
+                  label: Text('Selecionar até 5 imagens'),
+                ),
+                SizedBox(height: 10),
+                if (imagensSelecionadas.isNotEmpty)
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children:
+                        imagensSelecionadas.map((img) {
+                          return Image.file(
+                            File(img.path),
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                          );
+                        }).toList(),
+                  ),*/
               ],
             ),
           ),
@@ -79,23 +106,69 @@ class _ManageStoreScreenState extends State<ManageStoreScreen> {
               child: Text('Cancelar'),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final nome = nomeController.text;
                 final preco = double.tryParse(precoController.text) ?? 0.0;
                 final descricao = descricaoController.text;
                 final quantidade = int.tryParse(quantidadeController.text) ?? 0;
 
-                adicionaProduto(nome, preco, descricao, quantidade);
+                /*if (imagensSelecionadas.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Selecione pelo menos uma imagem')),
+                  );
+                  return;
+                }*/
+
+                await adicionaProduto(
+                  nome,
+                  preco,
+                  descricao,
+                  quantidade,
+                  //imagensSelecionadas,
+                );
+
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Produto "$nome" cadastrado!')),
                 );
+
+                /*setState(() {
+                  imagensSelecionadas.clear();
+                });*/
               },
               child: Text('Salvar'),
             ),
           ],
         );
       },
+    );
+  }
+
+  /*Future<void> selecionarImagens() async {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile> imagens = await picker.pickMultiImage();
+
+    if (imagens.length > 5) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Selecione no máximo 5 imagens')));
+      return;
+    }
+
+    setState(() {
+      imagensSelecionadas = imagens;
+    });
+
+    print('Total de imagens selecionadas: ${imagensSelecionadas.length}');
+  }*/
+
+  void adicionarAoCarrinho(Map<String, dynamic> produto) {
+    setState(() {
+      carrinho.add(produto);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${produto['nome']} adicionado ao carrinho!')),
     );
   }
 

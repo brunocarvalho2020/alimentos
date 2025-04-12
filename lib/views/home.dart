@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'carrinho.dart';
+
+List<Map<String, dynamic>> carrinho = [];
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -19,6 +22,16 @@ class _HomeViewState extends State<HomeView> {
   void initState() {
     super.initState();
     _loadUserData();
+  }
+
+  void adicionarAoCarrinho(Map<String, dynamic> produto) {
+    setState(() {
+      carrinho.add(produto);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${produto['nome']} adicionado ao carrinho!')),
+    );
   }
 
   Future<void> _loadUserData() async {
@@ -53,6 +66,17 @@ class _HomeViewState extends State<HomeView> {
         automaticallyImplyLeading: false,
         title: Text('Olá, ${userName ?? 'Visitante'}!'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.shopping_cart),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CarrinhoScreen(carrinho: carrinho),
+                ),
+              );
+            },
+          ),
           PopupMenuButton<String>(
             icon: Icon(Icons.more_vert),
             onSelected: (value) async {
@@ -157,6 +181,12 @@ class _HomeViewState extends State<HomeView> {
                               ),
                               Text('Quantidade: ${data['quantidade'] ?? 0}'),
                             ],
+                          ),
+                          trailing: ElevatedButton(
+                            onPressed: () {
+                              adicionarAoCarrinho(data);
+                            },
+                            child: Icon(Icons.add),
                           ),
                         ),
                       );
