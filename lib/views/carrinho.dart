@@ -12,16 +12,28 @@ class CarrinhoScreen extends StatefulWidget {
 }
 
 class _CarrinhoScreenState extends State<CarrinhoScreen> {
-  void finalizarCompra() {
-    setState(() {
-      widget.controller.limpar();
-    });
+  Future<void> _handleFinalizarCompra() async {
+    final user = FirebaseAuth.instance.currentUser;
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Compra finalizada!')));
+    if (user == null) {
+      final shouldContinue = await Navigator.pushNamed(context, '/login');
+      if (shouldContinue != true) return;
+    }
 
-    Navigator.pop(context);
+    final sucesso = widget.controller.finalizarCompra();
+
+    if (sucesso) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Compra finalizada com sucesso!')));
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Seu carrinho está vazio.')));
+    }
+
+    setState(() {}); // para atualizar a interface depois de limpar
   }
 
   @override
@@ -67,23 +79,7 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                         ),
                         SizedBox(height: 10),
                         ElevatedButton(
-                          onPressed: () async {
-                            final user = FirebaseAuth.instance.currentUser;
-
-                            if (user == null) {
-                              // Usuário não está logado → redireciona para tela de login
-                              final shouldContinue = await Navigator.pushNamed(
-                                context,
-                                '/login',
-                              );
-
-                              if (shouldContinue == true) {
-                                finalizarCompra();
-                              }
-                            } else {
-                              finalizarCompra();
-                            }
-                          },
+                          onPressed: _handleFinalizarCompra,
                           child: Text('Finalizar Compra'),
                         ),
                       ],
