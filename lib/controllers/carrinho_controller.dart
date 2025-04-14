@@ -28,6 +28,18 @@ class CarrinhoController {
     }
   }
 
+  void incrementar(int index) {
+    _itens[index].quantidade++;
+  }
+
+  void decrementar(int index) {
+    if (_itens[index].quantidade > 1) {
+      _itens[index].quantidade--;
+    } else {
+      remover(index); // remove do carrinho se for 1
+    }
+  }
+
   void remover(int index) => _itens.removeAt(index);
   void limpar() => _itens.clear();
 

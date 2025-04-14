@@ -64,13 +64,27 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                             ],
                           ),
                           isThreeLine: true,
-                          trailing: IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: () {
-                              setState(() {
-                                widget.controller.remover(index);
-                              });
-                            },
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.remove, color: Colors.red),
+                                onPressed: () {
+                                  setState(() {
+                                    widget.controller.decrementar(index);
+                                  });
+                                },
+                              ),
+                              Text('${item.quantidade}'),
+                              IconButton(
+                                icon: Icon(Icons.add, color: Colors.green),
+                                onPressed: () {
+                                  setState(() {
+                                    widget.controller.incrementar(index);
+                                  });
+                                },
+                              ),
+                            ],
                           ),
                         );
                       },
