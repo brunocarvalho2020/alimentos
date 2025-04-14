@@ -4,14 +4,33 @@ class CarrinhoController {
   final List<CarrinhoItem> _itens = [];
 
   List<CarrinhoItem> get itens => _itens;
-  double get total => _itens.fold(0, (soma, item) => soma + item.preco);
+
+  double get total =>
+      _itens.fold(0, (soma, item) => soma + (item.preco * item.quantidade));
+
   bool get estaVazio => _itens.isEmpty;
 
-  void adicionar(CarrinhoItem item) => _itens.add(item);
+  void adicionar(CarrinhoItem novoItem) {
+    final existente = _itens.indexWhere((item) => item.nome == novoItem.nome);
+
+    if (existente != -1) {
+      _itens[existente].quantidade += 1;
+    } else {
+      // Força a quantidade a iniciar com 1
+      _itens.add(
+        CarrinhoItem(
+          nome: novoItem.nome,
+          preco: novoItem.preco,
+          //imagem: novoItem.imagem,
+          quantidade: 1,
+        ),
+      );
+    }
+  }
+
   void remover(int index) => _itens.removeAt(index);
   void limpar() => _itens.clear();
 
-  /// Finaliza a compra e retorna true se foi finalizada com sucesso.
   bool finalizarCompra() {
     if (_itens.isEmpty) return false;
     _itens.clear();

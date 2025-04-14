@@ -25,7 +25,11 @@ class _HomeViewState extends State<HomeView> {
   }
 
   void adicionarAoCarrinho(Map<String, dynamic> produto) {
-    final item = CarrinhoItem.fromMap(produto);
+    final item = CarrinhoItem(
+      nome: produto['nome'] ?? '',
+      preco: (produto['preco'] ?? 0).toDouble(),
+      quantidade: 1, // Força 1 no carrinho
+    );
 
     setState(() {
       carrinhoController.adicionar(item);

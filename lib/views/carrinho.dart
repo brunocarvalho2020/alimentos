@@ -53,10 +53,17 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                       itemBuilder: (context, index) {
                         final item = itens[index];
                         return ListTile(
-                          title: Text(item.nome),
-                          subtitle: Text(
-                            'R\$ ${item.preco.toStringAsFixed(2)}',
+                          title: Text('${item.nome} x${item.quantidade}'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('R\$ ${item.preco.toStringAsFixed(2)} cada'),
+                              Text(
+                                'Subtotal: R\$ ${(item.preco * item.quantidade).toStringAsFixed(2)}',
+                              ),
+                            ],
                           ),
+                          isThreeLine: true,
                           trailing: IconButton(
                             icon: Icon(Icons.delete),
                             onPressed: () {
