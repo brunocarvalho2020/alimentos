@@ -103,12 +103,28 @@ class _MinhaContaViewState extends State<MinhaContaView> {
                 ),
               ],
             ),
-
             ...enderecos.map(
               (endereco) => ListTile(
                 leading: Icon(Icons.location_on),
                 title: Text('${endereco['rua']}, ${endereco['numero']}'),
                 subtitle: Text('${endereco['bairro']} - ${endereco['cidade']}'),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.edit), // Botão de editar
+                      onPressed: () {
+                        // Lógica de edição
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete), // Botão de remover
+                      onPressed: () {
+                        // Lógica para remover o item
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
             const Divider(height: 32),
