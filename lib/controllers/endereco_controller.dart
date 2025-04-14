@@ -26,4 +26,46 @@ class EnderecoController {
       return Endereco.fromMap(doc.id, doc.data());
     }).toList();
   }
+
+  Future<void> atualizarEndereco(String enderecoId, Endereco endereco) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) throw Exception("Usuário não autenticado");
+
+    final enderecoRef = _firestore.collection('enderecos').doc(enderecoId);
+
+    // Verifica se o endereço pertence ao usuário
+    final enderecoDoc = await enderecoRef.get();
+    if (!enderecoDoc.exists) {
+      throw Exception("Endereço não encontrado");
+    }
+
+    // Verifica se o usuário é o dono do endereço
+    if (enderecoDoc.data()?['usuarioId'] != userId) {
+      throw Exception("Este endereço não pertence ao usuário");
+    }
+
+    // Atualiza o endereço no Firestore
+    await enderecoRef.update(endereco.toMap(userId));
+  }
+
+  Future<void> removerEndereco(String enderecoId) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) throw Exception("Usuário não autenticado");
+
+    final enderecoRef = _firestore.collection('enderecos').doc(enderecoId);
+
+    // Verifica se o endereço existe
+    final enderecoDoc = await enderecoRef.get();
+    if (!enderecoDoc.exists) {
+      throw Exception("Endereço não encontrado");
+    }
+
+    // Verifica se o endereço pertence ao usuário
+    if (enderecoDoc.data()?['usuarioId'] != userId) {
+      throw Exception("Este endereço não pertence ao usuário");
+    }
+
+    // Remove o endereço do Firestore
+    await enderecoRef.delete();
+  }
 }

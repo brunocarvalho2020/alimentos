@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:teste_app/controllers/endereco_controller.dart';
+import 'package:teste_app/views/adicionar_endereco.dart';
 
 class MinhaContaView extends StatefulWidget {
   const MinhaContaView({super.key});
@@ -11,6 +13,7 @@ class MinhaContaView extends StatefulWidget {
 
 class _MinhaContaViewState extends State<MinhaContaView> {
   User? user = FirebaseAuth.instance.currentUser;
+  User? address = FirebaseAuth.instance.currentUser;
   Map<String, dynamic>? userData;
   List<Map<String, dynamic>> enderecos = [];
   List<Map<String, dynamic>> pedidos = [];
@@ -49,7 +52,13 @@ class _MinhaContaViewState extends State<MinhaContaView> {
 
       setState(() {
         userData = doc.data();
-        enderecos = enderecoSnapshot.docs.map((e) => e.data()).toList();
+        // Agora estamos incluindo o 'id' de cada documento de endereço
+        enderecos =
+            enderecoSnapshot.docs.map((e) {
+              var endereco = e.data(); // Dados do endereço
+              endereco['id'] = e.id; // Adicionando o ID do documento
+              return endereco; // Retornando os dados com o ID
+            }).toList();
         pedidos = pedidosSnapshot.docs.map((p) => p.data()).toList();
         isLoading = false;
         print(enderecos);
@@ -114,13 +123,82 @@ class _MinhaContaViewState extends State<MinhaContaView> {
                     IconButton(
                       icon: Icon(Icons.edit), // Botão de editar
                       onPressed: () {
-                        // Lógica de edição
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) =>
+                                    AdicionarEnderecoView(endereco: endereco),
+                          ),
+                        ).then((value) {
+                          if (value == true) {
+                            // Se a tela retornou com sucesso e dados foram alterados
+                            carregarDados();
+                          }
+                        });
                       },
                     ),
                     IconButton(
                       icon: Icon(Icons.delete), // Botão de remover
                       onPressed: () {
-                        // Lógica para remover o item
+                        // Exibe o popup de confirmação
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Confirmar exclusão'),
+                              content: Text(
+                                'Você tem certeza de que deseja excluir este endereço?',
+                              ),
+                              actions: <Widget>[
+                                TextButton(
+                                  child: Text('Cancelar'),
+                                  onPressed: () {
+                                    // Fecha o diálogo sem excluir
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                TextButton(
+                                  child: Text('Excluir'),
+                                  onPressed: () {
+                                    // Lógica para remover o item
+                                    EnderecoController()
+                                        .removerEndereco(endereco['id'])
+                                        .then((_) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Endereço removido com sucesso!',
+                                              ),
+                                            ),
+                                          );
+                                          carregarDados(); // Atualiza a lista de endereços
+                                          Navigator.of(
+                                            context,
+                                          ).pop(); // Fecha o diálogo após a exclusão
+                                        })
+                                        .catchError((error) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Erro ao remover endereço: $error',
+                                              ),
+                                            ),
+                                          );
+                                          Navigator.of(
+                                            context,
+                                          ).pop(); // Fecha o diálogo em caso de erro
+                                        });
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
                       },
                     ),
                   ],
