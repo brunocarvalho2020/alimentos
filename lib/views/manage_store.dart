@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/database.dart';
 import 'package:image_picker/image_picker.dart';
+import 'analises.dart'; // ajuste o caminho conforme sua estrutura
 
 List<Map<String, dynamic>> carrinho = [];
 
@@ -209,6 +210,20 @@ class _ManageStoreScreenState extends State<ManageStoreScreen> {
                       icon: Icon(Icons.add_business),
                       label: Text('Adicionar produto'),
                     ),
+                    if (userData!['userType'] == 'dono')
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EstatisticasScreen(),
+                            ),
+                          );
+                        },
+                        icon: Icon(Icons.bar_chart),
+                        label: Text('Ver análises de dados'),
+                      ),
+
                     SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: () {

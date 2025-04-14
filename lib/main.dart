@@ -6,6 +6,7 @@ import 'package:teste_app/views/minha_conta.dart';
 import 'views/login.dart';
 import 'views/home.dart'; // crie uma tela qualquer pra teste
 import 'firebase_options.dart';
+import 'views/analises.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,7 @@ void main() async {
         '/home': (_) => HomeView(),
         '/gerenciar-estabelecimento': (context) => ManageStoreScreen(),
         '/adicionar-endereco': (context) => AdicionarEnderecoView(),
+        '/estatisticas': (_) => EstatisticasScreen(),
       },
     ),
   );
