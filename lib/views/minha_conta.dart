@@ -35,9 +35,9 @@ class _MinhaContaViewState extends State<MinhaContaView> {
 
       final enderecoSnapshot =
           await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user!.uid)
               .collection('enderecos')
+              .where("usuarioId", isEqualTo: user!.uid)
+              .orderBy('cep', descending: true)
               .get();
 
       final pedidosSnapshot =
@@ -52,6 +52,7 @@ class _MinhaContaViewState extends State<MinhaContaView> {
         enderecos = enderecoSnapshot.docs.map((e) => e.data()).toList();
         pedidos = pedidosSnapshot.docs.map((p) => p.data()).toList();
         isLoading = false;
+        print(enderecos);
       });
     } catch (e) {
       print('Erro ao carregar dados: $e');
@@ -102,6 +103,7 @@ class _MinhaContaViewState extends State<MinhaContaView> {
                 ),
               ],
             ),
+
             ...enderecos.map(
               (endereco) => ListTile(
                 leading: Icon(Icons.location_on),
