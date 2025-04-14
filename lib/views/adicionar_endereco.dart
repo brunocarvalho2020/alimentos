@@ -3,7 +3,10 @@ import '../controllers/endereco_controller.dart';
 import '../models/endereco_model.dart';
 
 class AdicionarEnderecoView extends StatefulWidget {
-  const AdicionarEnderecoView({super.key});
+  final Map<String, dynamic>?
+  endereco; // Adicionar um parâmetro para aceitar um Endereco
+
+  const AdicionarEnderecoView({super.key, this.endereco});
 
   @override
   State<AdicionarEnderecoView> createState() => _AdicionarEnderecoViewState();
@@ -23,6 +26,22 @@ class _AdicionarEnderecoViewState extends State<AdicionarEnderecoView> {
 
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+
+    // Se o endereço foi passado, preenche os campos com os dados do endereço
+    if (widget.endereco != null) {
+      _ruaController.text = widget.endereco!['rua'];
+      _numeroController.text = widget.endereco!['numero'];
+      _bairroController.text = widget.endereco!['bairro'];
+      _cidadeController.text = widget.endereco!['cidade'];
+      _estadoController.text = widget.endereco!['estado'];
+      _cepController.text = widget.endereco!['cep'];
+      _complementoController.text = widget.endereco!['complemento'] ?? '';
+    }
+  }
+
   void _salvarEndereco() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -39,13 +58,19 @@ class _AdicionarEnderecoViewState extends State<AdicionarEnderecoView> {
         complemento: _complementoController.text,
       );
 
-      await _controller.adicionarEndereco(endereco);
+      if (widget.endereco == null) {
+        await _controller.adicionarEndereco(endereco);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Endereço salvo com sucesso!')));
+      } else {
+        await _controller.atualizarEndereco(widget.endereco!['id']!, endereco);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Endereço alterado com sucesso!')),
+        );
+      }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Endereço salvo com sucesso!')));
-
-      Navigator.pop(context); // Volta para a tela anterior
+      Navigator.pop(context, true); // Volta para a tela anterior
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -70,7 +95,11 @@ class _AdicionarEnderecoViewState extends State<AdicionarEnderecoView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Adicionar Endereço')),
+      appBar: AppBar(
+        title: Text(
+          widget.endereco == null ? 'Adicionar Endereço' : 'Alterar Endereço',
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -122,7 +151,11 @@ class _AdicionarEnderecoViewState extends State<AdicionarEnderecoView> {
                   ? Center(child: CircularProgressIndicator())
                   : ElevatedButton(
                     onPressed: _salvarEndereco,
-                    child: Text('Salvar Endereço'),
+                    child: Text(
+                      widget.endereco == null
+                          ? 'Salvar Endereço'
+                          : 'Alterar Endereço',
+                    ),
                   ),
             ],
           ),
