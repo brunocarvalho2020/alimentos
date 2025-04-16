@@ -31,6 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  provider: ^6.0.5
   cloud_firestore: ^4.15.0 # Para Firestore
   firebase_core: ^2.32.0
   firebase_auth: ^4.17.4

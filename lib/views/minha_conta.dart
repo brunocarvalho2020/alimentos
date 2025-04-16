@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:teste_app/controllers/endereco_controller.dart';
-import 'package:teste_app/views/adicionar_endereco.dart';
+import '../controllers/endereco_controller.dart';
+import 'adicionar_endereco.dart';
 
 class MinhaContaView extends StatefulWidget {
   const MinhaContaView({super.key});

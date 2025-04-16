@@ -11,7 +11,6 @@ import 'views/analises.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  print("Firebase inicializado com sucesso!");
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,
