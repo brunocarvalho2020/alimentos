@@ -4,7 +4,7 @@ import 'package:teste_app/views/adicionar_endereco.dart';
 import 'package:teste_app/views/manage_store.dart';
 import 'package:teste_app/views/minha_conta.dart';
 import 'views/login.dart';
-import 'views/home.dart'; // crie uma tela qualquer pra teste
+import 'views/home.dart';
 import 'firebase_options.dart';
 import 'views/analises.dart';
 
@@ -14,7 +14,16 @@ void main() async {
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomeView(),
+      theme: ThemeData(
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.teal[700], // cor de fundo do AppBar
+          foregroundColor: Colors.white, // cor do texto e ícones
+          titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+          iconTheme: IconThemeData(color: Colors.white),
+        ),
+        scaffoldBackgroundColor:
+            Colors.white, // ou defina outra cor de fundo global
+      ),
       initialRoute: '/home',
       routes: {
         '/login': (context) => LoginView(),

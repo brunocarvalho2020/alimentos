@@ -1,9 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../services/database.dart';
 import 'package:image_picker/image_picker.dart';
-import 'analises.dart'; // ajuste o caminho conforme sua estrutura
+import '../services/database.dart';
+import 'analises.dart';
 
 List<Map<String, dynamic>> carrinho = [];
 
@@ -18,7 +20,7 @@ class _ManageStoreScreenState extends State<ManageStoreScreen> {
   final user = FirebaseAuth.instance.currentUser;
   Map<String, dynamic>? userData;
   bool isLoading = true;
-  List<XFile> imagensSelecionadas = [];
+  XFile? imagemSelecionada;
 
   @override
   void initState() {
@@ -33,7 +35,6 @@ class _ManageStoreScreenState extends State<ManageStoreScreen> {
               .collection('users')
               .doc(user!.uid)
               .get();
-
       setState(() {
         userData = doc.data();
         isLoading = false;
@@ -47,128 +48,128 @@ class _ManageStoreScreenState extends State<ManageStoreScreen> {
     final descricaoController = TextEditingController();
     final quantidadeController = TextEditingController();
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) {
-        return AlertDialog(
-          title: Text('Cadastrar Produto'),
-          content: SingleChildScrollView(
+        return Padding(
+          padding: EdgeInsets.only(
+            top: 24,
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: SingleChildScrollView(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
-                  controller: nomeController,
-                  decoration: InputDecoration(labelText: 'Nome'),
+                Text(
+                  'Adicionar Produto',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                TextField(
-                  controller: precoController,
-                  decoration: InputDecoration(labelText: 'Preço'),
-                  keyboardType: TextInputType.number,
+                const SizedBox(height: 16),
+                GestureDetector(
+                  onTap: () async {
+                    final picker = ImagePicker();
+                    final pickedImage = await picker.pickImage(
+                      source: ImageSource.gallery,
+                    );
+                    if (pickedImage != null) {
+                      setState(() {
+                        imagemSelecionada = pickedImage;
+                      });
+                    }
+                  },
+                  child: CircleAvatar(
+                    radius: 45,
+                    backgroundImage:
+                        imagemSelecionada != null
+                            ? FileImage(File(imagemSelecionada!.path))
+                            : null,
+                    child:
+                        imagemSelecionada == null
+                            ? Icon(Icons.add_a_photo, size: 30)
+                            : null,
+                  ),
                 ),
-                TextField(
-                  controller: descricaoController,
-                  decoration: InputDecoration(labelText: 'Descrição'),
+                const SizedBox(height: 16),
+                _buildTextField('Nome', nomeController),
+                _buildTextField('Preço', precoController, isNumber: true),
+                _buildTextField('Descrição', descricaoController),
+                _buildTextField(
+                  'Quantidade',
+                  quantidadeController,
+                  isNumber: true,
                 ),
-                TextField(
-                  controller: quantidadeController,
-                  decoration: InputDecoration(labelText: 'Quantidade'),
-                  keyboardType: TextInputType.number,
-                ),
-                SizedBox(height: 12),
-                /*ElevatedButton.icon(
-                  onPressed: selecionarImagens,
-                  icon: Icon(Icons.image),
-                  label: Text('Selecionar até 5 imagens'),
-                ),
-                SizedBox(height: 10),
-                if (imagensSelecionadas.isNotEmpty)
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children:
-                        imagensSelecionadas.map((img) {
-                          return Image.file(
-                            File(img.path),
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        icon: Icon(Icons.cancel),
+                        label: Text('Cancelar'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final nome = nomeController.text;
+                          final preco =
+                              double.tryParse(precoController.text) ?? 0.0;
+                          final descricao = descricaoController.text;
+                          final quantidade =
+                              int.tryParse(quantidadeController.text) ?? 0;
+
+                          await adicionaProduto(
+                            nome,
+                            preco,
+                            descricao,
+                            quantidade,
                           );
-                        }).toList(),
-                  ),*/
+                          Navigator.pop(context);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Produto "$nome" cadastrado com sucesso!',
+                              ),
+                            ),
+                          );
+                        },
+                        icon: Icon(Icons.save),
+                        label: Text('Salvar'),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // fecha o diálogo
-              },
-              child: Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final nome = nomeController.text;
-                final preco = double.tryParse(precoController.text) ?? 0.0;
-                final descricao = descricaoController.text;
-                final quantidade = int.tryParse(quantidadeController.text) ?? 0;
-
-                /*if (imagensSelecionadas.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Selecione pelo menos uma imagem')),
-                  );
-                  return;
-                }*/
-
-                await adicionaProduto(
-                  nome,
-                  preco,
-                  descricao,
-                  quantidade,
-                  //imagensSelecionadas,
-                );
-
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Produto "$nome" cadastrado!')),
-                );
-
-                /*setState(() {
-                  imagensSelecionadas.clear();
-                });*/
-              },
-              child: Text('Salvar'),
-            ),
-          ],
         );
       },
     );
   }
 
-  /*Future<void> selecionarImagens() async {
-    final ImagePicker picker = ImagePicker();
-    final List<XFile> imagens = await picker.pickMultiImage();
-
-    if (imagens.length > 5) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Selecione no máximo 5 imagens')));
-      return;
-    }
-
-    setState(() {
-      imagensSelecionadas = imagens;
-    });
-
-    print('Total de imagens selecionadas: ${imagensSelecionadas.length}');
-  }*/
-
-  void adicionarAoCarrinho(Map<String, dynamic> produto) {
-    setState(() {
-      carrinho.add(produto);
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${produto['nome']} adicionado ao carrinho!')),
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool isNumber = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      ),
     );
   }
 
@@ -181,35 +182,34 @@ class _ManageStoreScreenState extends State<ManageStoreScreen> {
               ? Center(child: CircularProgressIndicator())
               : userData == null
               ? Center(child: Text('Erro ao carregar dados.'))
-              : Padding(
-                padding: const EdgeInsets.all(16.0),
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Nome: ${userData!['name']}',
-                      style: TextStyle(fontSize: 18),
+                    _infoText('Nome', userData!['name']),
+                    _infoText('E-mail', userData!['email']),
+                    _infoText('Tipo', userData!['userType']),
+                    _infoText(
+                      'Criado em',
+                      userData!['createdAt'].toDate().toString().split('.')[0],
                     ),
-                    Text(
-                      'E-mail: ${userData!['email']}',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                    Text(
-                      'Tipo: ${userData!['userType']}',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                    Text(
-                      'Criado em: ${userData!['createdAt'].toDate().toString().split('.')[0]}',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                    ),
-                    SizedBox(height: 30),
+                    const SizedBox(height: 24),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        _recebeProduto(context);
-                      },
+                      onPressed: () => _recebeProduto(context),
                       icon: Icon(Icons.add_business),
                       label: Text('Adicionar produto'),
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                     ),
+                    const SizedBox(height: 10),
                     if (userData!['userType'] == 'dono')
                       ElevatedButton.icon(
                         onPressed: () {
@@ -222,18 +222,44 @@ class _ManageStoreScreenState extends State<ManageStoreScreen> {
                         },
                         icon: Icon(Icons.bar_chart),
                         label: Text('Ver análises de dados'),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                       ),
-
-                    SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context); // Volta para HomeView
-                      },
-                      child: Text('Voltar'),
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(Icons.arrow_back),
+                      label: Text('Voltar'),
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
+    );
+  }
+
+  Widget _infoText(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Text(
+        '$label: $value',
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+      ),
     );
   }
 }

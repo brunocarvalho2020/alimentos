@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../controllers/carrinho_controller.dart';
 import '../models/carrinho_model.dart';
 import '../views/carrinho.dart';
@@ -24,7 +24,6 @@ class _HomeViewState extends State<HomeView> {
   void initState() {
     super.initState();
     homeController.loadUserData().then((_) {
-      // Força o rebuild da página após o carregamento dos dados do usuário
       setState(() {});
     });
   }
@@ -33,7 +32,7 @@ class _HomeViewState extends State<HomeView> {
     final item = CarrinhoItem(
       nome: produto['nome'] ?? '',
       preco: (produto['preco'] ?? 0).toDouble(),
-      quantidade: 1, // Força 1 no carrinho
+      quantidade: 1,
     );
 
     setState(() {
@@ -41,45 +40,44 @@ class _HomeViewState extends State<HomeView> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${item.nome} adicionado ao carrinho!')),
+      SnackBar(
+        content: Text('${item.nome} adicionado ao carrinho!'),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.green[600],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      stream:
-          _auth.authStateChanges(), // Escuta as mudanças no estado do Firebase
+      stream: _auth.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          ); // Exibe carregando enquanto aguarda
+          return Scaffold(body: Center(child: CircularProgressIndicator()));
         }
-
-        User? currentUser =
-            snapshot.data; // Atualiza o usuário com os dados atuais
 
         return Scaffold(
           appBar: AppBar(
-            automaticallyImplyLeading: false,
-            title: Text('Olá, ${homeController.userName ?? 'Visitante'}!'),
+            title: Text(
+              'Olá, ${homeController.userName ?? 'Visitante'}!',
+              style: TextStyle(color: Colors.white),
+            ),
             actions: [
               IconButton(
-                icon: Icon(Icons.shopping_cart),
+                icon: Icon(Icons.shopping_cart, color: Colors.white),
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder:
-                          (context) =>
-                              CarrinhoScreen(controller: carrinhoController),
+                          (_) => CarrinhoScreen(controller: carrinhoController),
                     ),
                   );
                 },
               ),
               PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert),
+                icon: Icon(Icons.more_vert, color: Colors.white),
                 onSelected: (value) async {
                   if (value == 'conta') {
                     Navigator.pushNamed(context, '/minha-conta');
@@ -108,47 +106,78 @@ class _HomeViewState extends State<HomeView> {
                       Text(
                         homeController.currentUser != null
                             ? 'Você está logado!'
-                            : 'Bem-vindo! Faça login para acessar mais recursos.',
-                        style: TextStyle(fontSize: 22),
+                            : 'Bem-vindo!\nFaça login para acessar mais recursos.',
+                        style: GoogleFonts.roboto(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.teal[800],
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 20),
                       if (homeController.userType == 'dono')
-                        ElevatedButton(
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.teal[600],
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          icon: Icon(Icons.store),
+                          label: Text(
+                            'Gerenciar meu estabelecimento',
+                            style: TextStyle(color: Colors.white),
+                          ),
                           onPressed: () {
                             Navigator.pushNamed(
                               context,
                               '/gerenciar-estabelecimento',
                             );
                           },
-                          child: Text('Gerenciar meu estabelecimento'),
                         ),
-                      if (homeController.currentUser == null) ...[
-                        ElevatedButton(
+                      if (homeController.currentUser == null)
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.teal[600],
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          icon: Icon(Icons.login),
+                          label: Text(
+                            'Fazer login',
+                            style: TextStyle(color: Colors.white),
+                          ),
                           onPressed: () async {
                             final result = await Navigator.pushNamed(
                               context,
                               '/login',
                             );
-
                             if (result == true) {
                               await homeController.loadUserData();
-
-                              if (mounted) {
-                                setState(() {});
-                              }
+                              if (mounted) setState(() {});
                             }
                           },
-                          child: Text('Fazer login'),
                         ),
-                      ],
                     ],
                   ),
                 ),
                 SizedBox(height: 30),
                 Text(
                   'Produtos disponíveis:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.roboto(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
                 ),
                 SizedBox(height: 10),
                 Expanded(
@@ -180,13 +209,15 @@ class _HomeViewState extends State<HomeView> {
                                   children: [
                                     Text(
                                       nomeLoja,
-                                      style: const TextStyle(
+                                      style: GoogleFonts.roboto(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
+                                        color: Colors.teal[800],
                                       ),
                                     ),
+                                    SizedBox(height: 10),
                                     SizedBox(
-                                      height: 200,
+                                      height: 220,
                                       child: PageView.builder(
                                         controller: PageController(
                                           viewportFraction: 0.85,
@@ -199,10 +230,10 @@ class _HomeViewState extends State<HomeView> {
                                               horizontal: 8,
                                             ),
                                             child: Card(
-                                              elevation: 4,
+                                              elevation: 6,
                                               shape: RoundedRectangleBorder(
                                                 borderRadius:
-                                                    BorderRadius.circular(12),
+                                                    BorderRadius.circular(16),
                                               ),
                                               child: Padding(
                                                 padding: const EdgeInsets.all(
@@ -237,12 +268,24 @@ class _HomeViewState extends State<HomeView> {
                                                       alignment:
                                                           Alignment.bottomRight,
                                                       child: ElevatedButton(
+                                                        style: ElevatedButton.styleFrom(
+                                                          backgroundColor:
+                                                              Colors.teal[600],
+                                                          shape: CircleBorder(),
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                12,
+                                                              ),
+                                                        ),
                                                         onPressed: () {
                                                           adicionarAoCarrinho(
                                                             produto,
                                                           );
                                                         },
-                                                        child: Icon(Icons.add),
+                                                        child: Icon(
+                                                          Icons.add,
+                                                          color: Colors.white,
+                                                        ),
                                                       ),
                                                     ),
                                                   ],

@@ -24,7 +24,6 @@ class _LoginViewState extends State<LoginView> {
         password: _senhaController.text.trim(),
       );
 
-      // Login ok → retorna para a tela anterior com resultado true
       if (mounted) {
         Navigator.pop(context, true);
       }
@@ -53,41 +52,93 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email'),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Center(
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            TextField(
-              controller: _senhaController,
-              decoration: InputDecoration(labelText: 'Senha'),
-              obscureText: true,
-            ),
-            SizedBox(height: 16),
-            if (_carregando)
-              CircularProgressIndicator()
-            else
-              ElevatedButton(onPressed: login, child: Text('Entrar')),
-            if (_erro != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: Text(_erro!, style: TextStyle(color: Colors.red)),
+            elevation: 10,
+            color: Colors.white.withOpacity(0.95),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'doofi',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _senhaController,
+                    decoration: InputDecoration(
+                      labelText: 'Senha',
+                      prefixIcon: Icon(Icons.lock),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    obscureText: true,
+                  ),
+                  const SizedBox(height: 20),
+                  if (_carregando)
+                    CircularProgressIndicator()
+                  else
+                    ElevatedButton.icon(
+                      onPressed: login,
+                      icon: Icon(Icons.login),
+                      label: Text(
+                        'Entrar',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal[600],
+                        minimumSize: Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 12),
+                  if (_erro != null)
+                    Text(_erro!, style: TextStyle(color: Colors.red)),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => RegisterScreen()),
+                      );
+                    },
+                    child: const Text('Não tem conta? Cadastre-se'),
+                  ),
+                ],
               ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => RegisterScreen()),
-                );
-              },
-              child: Text('Registrar'),
             ),
-          ],
+          ),
         ),
       ),
     );

@@ -33,18 +33,24 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
       ).showSnackBar(SnackBar(content: Text('Seu carrinho está vazio.')));
     }
 
-    setState(() {}); // para atualizar a interface depois de limpar
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     final itens = widget.controller.itens;
+    final isEmpty = widget.controller.estaVazio;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Carrinho de Compras')),
+      appBar: AppBar(title: Text('Carrinho de Compras'), centerTitle: true),
       body:
-          widget.controller.estaVazio
-              ? Center(child: Text('Seu carrinho está vazio.'))
+          isEmpty
+              ? Center(
+                child: Text(
+                  'Seu carrinho está vazio.',
+                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                ),
+              )
               : Column(
                 children: [
                   Expanded(
@@ -52,56 +58,126 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                       itemCount: itens.length,
                       itemBuilder: (context, index) {
                         final item = itens[index];
-                        return ListTile(
-                          title: Text('${item.nome} x${item.quantidade}'),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('R\$ ${item.preco.toStringAsFixed(2)} cada'),
-                              Text(
-                                'Subtotal: R\$ ${(item.preco * item.quantidade).toStringAsFixed(2)}',
-                              ),
-                            ],
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0,
+                            vertical: 6,
                           ),
-                          isThreeLine: true,
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.remove, color: Colors.red),
-                                onPressed: () {
-                                  setState(() {
-                                    widget.controller.decrementar(index);
-                                  });
-                                },
+                          child: Card(
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '${item.nome} x${item.quantidade}',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          'R\$ ${item.preco.toStringAsFixed(2)} cada',
+                                        ),
+                                        Text(
+                                          'Subtotal: R\$ ${(item.preco * item.quantidade).toStringAsFixed(2)}',
+                                          style: TextStyle(
+                                            color: Colors.grey[700],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.remove_circle_outline,
+                                          color: Colors.red,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            widget.controller.decrementar(
+                                              index,
+                                            );
+                                          });
+                                        },
+                                      ),
+                                      Text('${item.quantidade}'),
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.add_circle_outline,
+                                          color: Colors.green,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            widget.controller.incrementar(
+                                              index,
+                                            );
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              Text('${item.quantidade}'),
-                              IconButton(
-                                icon: Icon(Icons.add, color: Colors.green),
-                                onPressed: () {
-                                  setState(() {
-                                    widget.controller.incrementar(index);
-                                  });
-                                },
-                              ),
-                            ],
+                            ),
                           ),
                         );
                       },
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(20),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 6,
+                          offset: Offset(0, -2),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
                           'Total: R\$ ${widget.controller.total.toStringAsFixed(2)}',
-                          style: TextStyle(fontSize: 18),
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.right,
                         ),
-                        SizedBox(height: 10),
-                        ElevatedButton(
+                        SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green[700],
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: Icon(Icons.shopping_cart_checkout),
+                          label: Text(
+                            'Finalizar Compra',
+                            style: TextStyle(fontSize: 16),
+                          ),
                           onPressed: _handleFinalizarCompra,
-                          child: Text('Finalizar Compra'),
                         ),
                       ],
                     ),
