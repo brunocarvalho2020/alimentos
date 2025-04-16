@@ -94,6 +94,9 @@ class _MinhaContaViewState extends State<MinhaContaView> {
             Text('Email: ${user!.email}'),
             Text('Nome: ${userData?['name'] ?? 'Não informado'}'),
             Text('Tipo: ${userData?['userType'] ?? 'cliente'}'),
+            Text(
+              'Nome da Empresa: ${userData?['nomeEmpresa'] ?? 'Não informado'}',
+            ),
             const Divider(height: 32),
 
             // Endereços

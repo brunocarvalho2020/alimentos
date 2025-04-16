@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:teste_app/controllers/home_controller.dart';
 import 'package:teste_app/views/register.dart';
 
 class LoginView extends StatefulWidget {
@@ -27,8 +26,6 @@ class _LoginViewState extends State<LoginView> {
 
       // Login ok → retorna para a tela anterior com resultado true
       if (mounted) {
-        final homeController = HomeController();
-        homeController.currentUser = _auth.currentUser;
         Navigator.pop(context, true);
       }
     } on FirebaseAuthException catch (e) {
@@ -51,17 +48,6 @@ class _LoginViewState extends State<LoginView> {
             ),
       );
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user != null && mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    });
   }
 
   @override

@@ -63,7 +63,7 @@ class _HomeViewState extends State<HomeView> {
         return Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: false,
-            title: Text('Olá, ${currentUser?.email ?? 'Visitante'}!'),
+            title: Text('Olá, ${homeController.userName ?? 'Visitante'}!'),
             actions: [
               IconButton(
                 icon: Icon(Icons.shopping_cart),
@@ -104,18 +104,16 @@ class _HomeViewState extends State<HomeView> {
                 Center(
                   child: Column(
                     children: [
-                      Icon(Icons.home, size: 80, color: Colors.blue),
                       SizedBox(height: 20),
                       Text(
-                        currentUser != null
+                        homeController.currentUser != null
                             ? 'Você está logado!'
                             : 'Bem-vindo! Faça login para acessar mais recursos.',
                         style: TextStyle(fontSize: 22),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 20),
-                      if (currentUser != null &&
-                          homeController.userType == 'dono')
+                      if (homeController.userType == 'dono')
                         ElevatedButton(
                           onPressed: () {
                             Navigator.pushNamed(
@@ -125,26 +123,25 @@ class _HomeViewState extends State<HomeView> {
                           },
                           child: Text('Gerenciar meu estabelecimento'),
                         ),
-                      if (currentUser == null)
+                      if (homeController.currentUser == null) ...[
                         ElevatedButton(
                           onPressed: () async {
-                            final resultado = await Navigator.pushNamed(
+                            final result = await Navigator.pushNamed(
                               context,
                               '/login',
                             );
-                            if (resultado == true) {
-                              await homeController
-                                  .loadUserData(); // Carrega os dados após login
-                              setState(() {
-                                homeController.isLoading = true;
-                              });
-                              setState(
-                                () {},
-                              ); // Força rebuild com usuário atualizado
+
+                            if (result == true) {
+                              await homeController.loadUserData();
+
+                              if (mounted) {
+                                setState(() {});
+                              }
                             }
                           },
                           child: Text('Fazer login'),
                         ),
+                      ],
                     ],
                   ),
                 ),
@@ -155,53 +152,111 @@ class _HomeViewState extends State<HomeView> {
                 ),
                 SizedBox(height: 10),
                 Expanded(
-                  child: StreamBuilder<QuerySnapshot>(
-                    stream: homeController.getProdutosStream(),
+                  child: FutureBuilder<Map<String, List<Map<String, dynamic>>>>(
+                    future: homeController.getProdutosAgrupadosPorLoja(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return Center(child: CircularProgressIndicator());
                       }
 
-                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         return Center(
                           child: Text('Nenhum produto encontrado.'),
                         );
                       }
 
-                      final produtos = snapshot.data!.docs;
+                      final lojas = snapshot.data!;
 
-                      return ListView.builder(
-                        itemCount: produtos.length,
-                        itemBuilder: (context, index) {
-                          final data =
-                              produtos[index].data() as Map<String, dynamic>;
+                      return ListView(
+                        children:
+                            lojas.entries.map((entry) {
+                              final nomeLoja = entry.key;
+                              final produtos = entry.value;
 
-                          return Card(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: ListTile(
-                              title: Text(data['nome'] ?? 'Sem nome'),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(data['descricao'] ?? 'Sem descrição'),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Preço: R\$ ${data['preco']?.toStringAsFixed(2) ?? '0.00'}',
-                                  ),
-                                  Text(
-                                    'Quantidade: ${data['quantidade'] ?? 0}',
-                                  ),
-                                ],
-                              ),
-                              trailing: ElevatedButton(
-                                onPressed: () {
-                                  adicionarAoCarrinho(data);
-                                },
-                                child: Icon(Icons.add),
-                              ),
-                            ),
-                          );
-                        },
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 24.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      nomeLoja,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 200,
+                                      child: PageView.builder(
+                                        controller: PageController(
+                                          viewportFraction: 0.85,
+                                        ),
+                                        itemCount: produtos.length,
+                                        itemBuilder: (context, index) {
+                                          final produto = produtos[index];
+                                          return Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                            ),
+                                            child: Card(
+                                              elevation: 4,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(
+                                                  12.0,
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      produto['nome'] ?? '',
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 6),
+                                                    Text(
+                                                      produto['descricao'] ??
+                                                          '',
+                                                    ),
+                                                    const SizedBox(height: 6),
+                                                    Text(
+                                                      'R\$ ${produto['preco']?.toStringAsFixed(2) ?? '0.00'}',
+                                                    ),
+                                                    Text(
+                                                      'Estoque: ${produto['quantidade'] ?? 0}',
+                                                    ),
+                                                    Spacer(),
+                                                    Align(
+                                                      alignment:
+                                                          Alignment.bottomRight,
+                                                      child: ElevatedButton(
+                                                        onPressed: () {
+                                                          adicionarAoCarrinho(
+                                                            produto,
+                                                          );
+                                                        },
+                                                        child: Icon(Icons.add),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
                       );
                     },
                   ),

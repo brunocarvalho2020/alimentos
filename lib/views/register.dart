@@ -15,6 +15,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String name = '';
   String email = '';
   String password = '';
+  String nomeEmpresa = '';
   String userType = 'cliente'; // cliente ou dono
 
   bool isLoading = false;
@@ -39,6 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               'name': name.trim(),
               'email': email.trim(),
               'userType': userType, // por exemplo: 'cliente' ou 'dono'
+              'nomeEmpresa': nomeEmpresa.trim(),
               'createdAt': Timestamp.now(),
             });
 
@@ -80,6 +82,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Form(
                   key: _formKey,
+
+                  // ... (seu código anterior permanece)
                   child: ListView(
                     children: [
                       TextFormField(
@@ -107,6 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 value!.length < 6 ? 'Senha muito curta' : null,
                       ),
                       SizedBox(height: 20),
+
                       DropdownButtonFormField<String>(
                         value: userType,
                         items: [
@@ -124,7 +129,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelText: 'Tipo de usuário',
                         ),
                       ),
+
+                      if (userType ==
+                          'dono') // 👈 Aqui mostramos o campo apenas para donos
+                        TextFormField(
+                          decoration: InputDecoration(
+                            labelText: 'Nome da loja',
+                          ),
+                          onChanged: (value) => nomeEmpresa = value,
+                          validator: (value) {
+                            if (userType == 'dono' && value!.trim().isEmpty) {
+                              return 'Digite o nome da loja';
+                            }
+                            return null;
+                          },
+                        ),
+
                       SizedBox(height: 20),
+
                       ElevatedButton(
                         onPressed: _register,
                         child: Text('Registrar'),
@@ -132,9 +154,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       SizedBox(height: 10),
                       TextButton(
                         onPressed: () {
-                          Navigator.pop(
-                            context,
-                          ); // Volta para a tela anterior (login)
+                          Navigator.pop(context);
                         },
                         child: Text('Voltar para login'),
                       ),

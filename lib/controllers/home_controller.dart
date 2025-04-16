@@ -8,7 +8,8 @@ class HomeController {
   bool isLoading = true;
 
   Future<void> loadUserData() async {
-    currentUser = FirebaseAuth.instance.currentUser;
+    final user = FirebaseAuth.instance.currentUser;
+    currentUser = user;
 
     if (currentUser != null) {
       final doc =
@@ -33,5 +34,21 @@ class HomeController {
 
   Stream<QuerySnapshot> getProdutosStream() {
     return FirebaseFirestore.instance.collection('produtos').snapshots();
+  }
+
+  Future<Map<String, List<Map<String, dynamic>>>>
+  getProdutosAgrupadosPorLoja() async {
+    final snapshot =
+        await FirebaseFirestore.instance.collection('produtos').get();
+
+    final Map<String, List<Map<String, dynamic>>> agrupado = {};
+
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+      final empresa = data['nomeEmpresa'] ?? 'Loja Desconhecida';
+      agrupado.putIfAbsent(empresa, () => []).add(data);
+    }
+
+    return agrupado;
   }
 }
