@@ -34,4 +34,20 @@ class HomeController {
   Stream<QuerySnapshot> getProdutosStream() {
     return FirebaseFirestore.instance.collection('produtos').snapshots();
   }
+
+  Future<Map<String, List<Map<String, dynamic>>>>
+  getProdutosAgrupadosPorLoja() async {
+    final snapshot =
+        await FirebaseFirestore.instance.collection('produtos').get();
+
+    final Map<String, List<Map<String, dynamic>>> agrupado = {};
+
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+      final empresa = data['nomeEmpresa'] ?? 'Loja Desconhecida';
+      agrupado.putIfAbsent(empresa, () => []).add(data);
+    }
+
+    return agrupado;
+  }
 }
