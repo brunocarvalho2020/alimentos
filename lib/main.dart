@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:teste_app/views/adicionar_endereco.dart';
-import 'package:teste_app/views/manage_store.dart';
+import 'package:teste_app/views/endereco.dart';
+import 'package:teste_app/views/gerenciamento.dart';
 import 'package:teste_app/views/minha_conta.dart';
 import 'views/login.dart';
 import 'views/home.dart';

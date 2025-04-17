@@ -1,41 +1,61 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class MinhaContaController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  User? get currentUser => _auth.currentUser;
-
-  Future<Map<String, dynamic>?> carregarUserData() async {
-    final doc =
-        await _firestore.collection('users').doc(currentUser!.uid).get();
-    return doc.data();
+  Future<Map<String, dynamic>?> carregarUsuarioDados(String uid) async {
+    try {
+      final doc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      return doc.data();
+    } catch (e) {
+      print('Erro ao carregar dados do usuário: $e');
+      return null;
+    }
   }
 
-  Future<List<Map<String, dynamic>>> carregarEnderecos() async {
-    final snapshot =
-        await _firestore
-            .collection('enderecos')
-            .where('usuarioId', isEqualTo: currentUser!.uid)
-            .orderBy('cep', descending: true)
-            .get();
+  Future<List<Map<String, dynamic>>> carregarEnderecos(String uid) async {
+    try {
+      final enderecoSnapshot =
+          await FirebaseFirestore.instance
+              .collection('enderecos')
+              .where("usuarioId", isEqualTo: uid)
+              .orderBy('cep', descending: true)
+              .get();
 
-    return snapshot.docs.map((doc) {
-      final data = doc.data();
-      data['id'] = doc.id;
-      return data;
-    }).toList();
+      return enderecoSnapshot.docs.map((e) {
+        var endereco = e.data();
+        endereco['id'] = e.id;
+        return endereco;
+      }).toList();
+    } catch (e) {
+      print('Erro ao carregar endereços: $e');
+      return [];
+    }
   }
 
-  Future<List<Map<String, dynamic>>> carregarPedidos() async {
-    final snapshot =
-        await _firestore
-            .collection('pedidos')
-            .where('userId', isEqualTo: currentUser!.uid)
-            .orderBy('data', descending: true)
-            .get();
+  Future<List<Map<String, dynamic>>> carregarPedidos(String uid) async {
+    try {
+      final pedidosSnapshot =
+          await FirebaseFirestore.instance
+              .collection('pedidos')
+              .where('userId', isEqualTo: uid)
+              .orderBy('data', descending: true)
+              .get();
 
-    return snapshot.docs.map((doc) => doc.data()).toList();
+      return pedidosSnapshot.docs.map((p) => p.data()).toList();
+    } catch (e) {
+      print('Erro ao carregar pedidos: $e');
+      return [];
+    }
+  }
+
+  Future<void> removerEndereco(String enderecoId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('enderecos')
+          .doc(enderecoId)
+          .delete();
+    } catch (e) {
+      print('Erro ao remover endereço: $e');
+    }
   }
 }

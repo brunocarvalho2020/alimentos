@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:teste_app/controllers/minha_conta_controller.dart';
-import '../controllers/endereco_controller.dart';
-import 'adicionar_endereco.dart';
+import 'package:teste_app/views/endereco.dart';
 
 class MinhaContaView extends StatefulWidget {
   const MinhaContaView({super.key});
@@ -12,8 +11,8 @@ class MinhaContaView extends StatefulWidget {
 }
 
 class _MinhaContaViewState extends State<MinhaContaView> {
+  final MinhaContaController _controller = MinhaContaController();
   User? user = FirebaseAuth.instance.currentUser;
-  final _controller = MinhaContaController();
   Map<String, dynamic>? userData;
   List<Map<String, dynamic>> enderecos = [];
   List<Map<String, dynamic>> pedidos = [];
@@ -23,7 +22,9 @@ class _MinhaContaViewState extends State<MinhaContaView> {
   @override
   void initState() {
     super.initState();
-    carregarDados();
+    if (user != null) {
+      carregarDados();
+    }
   }
 
   Future<void> carregarDados() async {
@@ -31,9 +32,9 @@ class _MinhaContaViewState extends State<MinhaContaView> {
 
     try {
       final data = await Future.wait([
-        _controller.carregarUserData(),
-        _controller.carregarEnderecos(),
-        _controller.carregarPedidos(),
+        _controller.carregarUsuarioDados(user!.uid),
+        _controller.carregarEnderecos(user!.uid),
+        _controller.carregarPedidos(user!.uid),
       ]);
 
       setState(() {
@@ -190,7 +191,7 @@ class _MinhaContaViewState extends State<MinhaContaView> {
                                   TextButton(
                                     child: Text('Excluir'),
                                     onPressed: () {
-                                      EnderecoController()
+                                      _controller
                                           .removerEndereco(endereco['id'])
                                           .then((_) {
                                             ScaffoldMessenger.of(

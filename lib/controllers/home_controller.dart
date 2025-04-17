@@ -45,7 +45,7 @@ class HomeController {
 
     for (var doc in snapshot.docs) {
       final data = doc.data();
-      final empresa = data['nomeEmpresa'] ?? 'Loja Desconhecida';
+      final empresa = data['nomeEstabelecimento'] ?? 'Loja Desconhecida';
       agrupado.putIfAbsent(empresa, () => []).add(data);
     }
 
