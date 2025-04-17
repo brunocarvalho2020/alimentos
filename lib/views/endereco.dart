@@ -3,8 +3,7 @@ import '../controllers/endereco_controller.dart';
 import '../models/endereco_model.dart';
 
 class AdicionarEnderecoView extends StatefulWidget {
-  final Map<String, dynamic>?
-  endereco; // Adicionar um parâmetro para aceitar um Endereco
+  final Map<String, dynamic>? endereco;
 
   const AdicionarEnderecoView({super.key, this.endereco});
 
@@ -29,8 +28,6 @@ class _AdicionarEnderecoViewState extends State<AdicionarEnderecoView> {
   @override
   void initState() {
     super.initState();
-
-    // Se o endereço foi passado, preenche os campos com os dados do endereço
     if (widget.endereco != null) {
       _ruaController.text = widget.endereco!['rua'];
       _numeroController.text = widget.endereco!['numero'];
@@ -60,24 +57,37 @@ class _AdicionarEnderecoViewState extends State<AdicionarEnderecoView> {
 
       if (widget.endereco == null) {
         await _controller.adicionarEndereco(endereco);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Endereço salvo com sucesso!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Endereço salvo com sucesso!')),
+        );
       } else {
         await _controller.atualizarEndereco(widget.endereco!['id']!, endereco);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Endereço alterado com sucesso!')),
+          const SnackBar(content: Text('Endereço alterado com sucesso!')),
         );
       }
 
-      Navigator.pop(context, true); // Volta para a tela anterior
+      Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Erro ao salvar endereço')));
+      ).showSnackBar(const SnackBar(content: Text('Erro ao salvar endereço')));
     }
 
     setState(() => _isLoading = false);
+  }
+
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: Colors.grey.shade100,
+      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+    );
   }
 
   @override
@@ -94,67 +104,86 @@ class _AdicionarEnderecoViewState extends State<AdicionarEnderecoView> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.endereco != null;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.endereco == null ? 'Adicionar Endereço' : 'Alterar Endereço',
-        ),
+        title: Text(isEditing ? 'Alterar Endereço' : 'Adicionar Endereço'),
+        centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
             children: [
               TextFormField(
                 controller: _ruaController,
-                decoration: InputDecoration(labelText: 'Rua'),
+                decoration: _inputDecoration('Rua'),
                 validator: (value) => value!.isEmpty ? 'Informe a rua' : null,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _numeroController,
-                decoration: InputDecoration(labelText: 'Número'),
+                decoration: _inputDecoration('Número'),
                 validator:
                     (value) => value!.isEmpty ? 'Informe o número' : null,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _bairroController,
-                decoration: InputDecoration(labelText: 'Bairro'),
+                decoration: _inputDecoration('Bairro'),
                 validator:
                     (value) => value!.isEmpty ? 'Informe o bairro' : null,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _cidadeController,
-                decoration: InputDecoration(labelText: 'Cidade'),
+                decoration: _inputDecoration('Cidade'),
                 validator:
                     (value) => value!.isEmpty ? 'Informe a cidade' : null,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _estadoController,
-                decoration: InputDecoration(labelText: 'Estado'),
+                decoration: _inputDecoration('Estado'),
                 validator:
                     (value) => value!.isEmpty ? 'Informe o estado' : null,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _cepController,
-                decoration: InputDecoration(labelText: 'CEP'),
+                decoration: _inputDecoration('CEP'),
                 validator: (value) => value!.isEmpty ? 'Informe o CEP' : null,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _complementoController,
-                decoration: InputDecoration(
-                  labelText: 'Complemento (opcional)',
-                ),
+                decoration: _inputDecoration('Complemento (opcional)'),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 24),
               _isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                    onPressed: _salvarEndereco,
-                    child: Text(
-                      widget.endereco == null
-                          ? 'Salvar Endereço'
-                          : 'Alterar Endereço',
+                  ? const CircularProgressIndicator()
+                  : SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      icon: Icon(isEditing ? Icons.edit_location : Icons.save),
+                      onPressed: _salvarEndereco,
+                      label: Text(
+                        isEditing ? 'Alterar Endereço' : 'Salvar Endereço',
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
             ],
