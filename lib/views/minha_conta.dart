@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../controllers/endereco_controller.dart';
-import 'adicionar_endereco.dart';
+import '../controllers/minha_conta_controller.dart';
+import 'endereco.dart';
 
 class MinhaContaView extends StatefulWidget {
   const MinhaContaView({super.key});
@@ -12,6 +11,7 @@ class MinhaContaView extends StatefulWidget {
 }
 
 class _MinhaContaViewState extends State<MinhaContaView> {
+  final MinhaContaController _controller = MinhaContaController();
   User? user = FirebaseAuth.instance.currentUser;
   Map<String, dynamic>? userData;
   List<Map<String, dynamic>> enderecos = [];
@@ -22,42 +22,23 @@ class _MinhaContaViewState extends State<MinhaContaView> {
   @override
   void initState() {
     super.initState();
-    carregarDados();
+    if (user != null) {
+      carregarDados();
+    }
   }
 
   Future<void> carregarDados() async {
     if (user == null) return;
 
     try {
-      final doc =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user!.uid)
-              .get();
-
-      final enderecoSnapshot =
-          await FirebaseFirestore.instance
-              .collection('enderecos')
-              .where("usuarioId", isEqualTo: user!.uid)
-              .orderBy('cep', descending: true)
-              .get();
-
-      final pedidosSnapshot =
-          await FirebaseFirestore.instance
-              .collection('pedidos')
-              .where('userId', isEqualTo: user!.uid)
-              .orderBy('data', descending: true)
-              .get();
+      final userDataResult = await _controller.carregarUsuarioDados(user!.uid);
+      final enderecosResult = await _controller.carregarEnderecos(user!.uid);
+      final pedidosResult = await _controller.carregarPedidos(user!.uid);
 
       setState(() {
-        userData = doc.data();
-        enderecos =
-            enderecoSnapshot.docs.map((e) {
-              var endereco = e.data();
-              endereco['id'] = e.id;
-              return endereco;
-            }).toList();
-        pedidos = pedidosSnapshot.docs.map((p) => p.data()).toList();
+        userData = userDataResult;
+        enderecos = enderecosResult;
+        pedidos = pedidosResult;
         isLoading = false;
       });
     } catch (e) {
@@ -120,13 +101,14 @@ class _MinhaContaViewState extends State<MinhaContaView> {
                       subtitle: Text(userData?['userType'] ?? 'cliente'),
                     ),
                     Divider(),
-                    ListTile(
-                      leading: Icon(Icons.business, color: Colors.orange),
-                      title: Text('Nome da Empresa'),
-                      subtitle: Text(
-                        userData?['nomeEmpresa'] ?? 'Não informado',
+                    if (userData?['userType'] == 'dono')
+                      ListTile(
+                        leading: Icon(Icons.business, color: Colors.orange),
+                        title: Text('Nome da Empresa'),
+                        subtitle: Text(
+                          userData?['nomeEmpresa'] ?? 'Não informado',
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -206,7 +188,7 @@ class _MinhaContaViewState extends State<MinhaContaView> {
                                   TextButton(
                                     child: Text('Excluir'),
                                     onPressed: () {
-                                      EnderecoController()
+                                      _controller
                                           .removerEndereco(endereco['id'])
                                           .then((_) {
                                             ScaffoldMessenger.of(
