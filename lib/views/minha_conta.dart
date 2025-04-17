@@ -102,8 +102,8 @@ class _MinhaContaViewState extends State<MinhaContaView> {
                       title: Text('Tipo de Usuário'),
                       subtitle: Text(userData?['userType'] ?? 'cliente'),
                     ),
-                    Divider(),
                     if (userData?['userType'] == 'dono') ...[
+                      Divider(),
                       ListTile(
                         leading: Icon(Icons.business, color: Colors.orange),
                         title: Text('Nome da Empresa'),
