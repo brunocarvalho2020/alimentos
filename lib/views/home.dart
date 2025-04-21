@@ -60,41 +60,68 @@ class _HomeViewState extends State<HomeView> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(
-              'Olá, ${homeController.userName ?? 'Visitante'}!',
-              style: TextStyle(color: Colors.white),
+            leading: PopupMenuButton<String>(
+              icon: Icon(Icons.more_vert, color: Colors.white),
+              onSelected: (value) async {
+                if (value == 'conta') {
+                  Navigator.pushNamed(context, '/minha-conta');
+                } else if (value == 'sair') {
+                  await homeController.logout();
+                  setState(() {});
+                }
+              },
+              itemBuilder:
+                  (context) => [
+                    PopupMenuItem(value: 'conta', child: Text('Minha conta')),
+                    PopupMenuItem(value: 'sair', child: Text('Sair')),
+                  ],
+            ),
+            title: Center(
+              child: Text(
+                'Olá, ${homeController.userName ?? 'Visitante'}!',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
             actions: [
-              IconButton(
-                icon: Icon(Icons.shopping_cart, color: Colors.white),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (_) => CarrinhoScreen(controller: carrinhoController),
+              Stack(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.shopping_cart, color: Colors.white),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (_) => CarrinhoScreen(
+                                controller: carrinhoController,
+                              ),
+                        ),
+                      );
+                    },
+                  ),
+                  if (carrinhoController.itens.length > 0)
+                    Positioned(
+                      right: 1,
+                      top: 1,
+                      child: Container(
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: BoxConstraints(minWidth: 6, minHeight: 6),
+                        child: Text(
+                          '${carrinhoController.itens.length}',
+                          style: TextStyle(color: Colors.white, fontSize: 12),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ),
-                  );
-                },
-              ),
-              PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert, color: Colors.white),
-                onSelected: (value) async {
-                  if (value == 'conta') {
-                    Navigator.pushNamed(context, '/minha-conta');
-                  } else if (value == 'sair') {
-                    await homeController.logout();
-                    setState(() {});
-                  }
-                },
-                itemBuilder:
-                    (context) => [
-                      PopupMenuItem(value: 'conta', child: Text('Minha conta')),
-                      PopupMenuItem(value: 'sair', child: Text('Sair')),
-                    ],
+                ],
               ),
             ],
           ),
+
           body: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
