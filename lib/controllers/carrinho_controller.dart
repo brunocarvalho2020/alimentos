@@ -17,7 +17,12 @@ class CarrinhoController {
       _itens[existente].quantidade += 1;
     } else {
       _itens.add(
-        CarrinhoItem(nome: novoItem.nome, preco: novoItem.preco, quantidade: 1),
+        CarrinhoItem(
+          nome: novoItem.nome,
+          preco: novoItem.preco,
+          idDono: novoItem.idDono,
+          quantidade: 1,
+        ),
       );
     }
   }
@@ -38,20 +43,26 @@ class CarrinhoController {
 
   void limpar() => _itens.clear();
 
-  /// FINALIZA COMPRA E SALVA NO FIRESTORE
-  Future<bool> finalizarCompra(String usuarioId) async {
+  /// FINALIZA CADA ITEM COMO UM PEDIDO INDIVIDUAL
+  Future<bool> finalizarCompra(String usuarioId, String idDono) async {
     if (_itens.isEmpty) return false;
 
     try {
-      final pedido = {
-        'usuarioId': usuarioId,
-        'itens': _itens.map((item) => item.toMap()).toList(),
-        'total': total,
-        'data': Timestamp.now(),
-        'entregue': false, // campo que você pediu
-      };
+      for (var item in _itens) {
+        final pedido = {
+          'idDono': item.idDono,
+          'usuarioId': usuarioId,
+          'nome': item.nome,
+          'preco': item.preco,
+          'quantidade': item.quantidade,
+          'total': item.preco * item.quantidade,
+          'data': Timestamp.now(),
+          'entregue': false,
+        };
 
-      await FirebaseFirestore.instance.collection('pedidos').add(pedido);
+        await FirebaseFirestore.instance.collection('pedidos').add(pedido);
+      }
+
       _itens.clear();
       return true;
     } catch (e) {

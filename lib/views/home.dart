@@ -33,6 +33,7 @@ class _HomeViewState extends State<HomeView> {
       nome: produto['nome'] ?? '',
       preco: (produto['preco'] ?? 0).toDouble(),
       quantidade: 1,
+      idDono: produto['userId'] ?? '',
     );
 
     setState(() {

@@ -20,17 +20,35 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
       if (shouldContinue != true) return;
     }
 
-    final sucesso = widget.controller.finalizarCompra(user!.uid);
+    final itens = widget.controller.itens;
 
-    if (await sucesso) {
+    if (itens.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Compra finalizada com sucesso!')));
+      ).showSnackBar(SnackBar(content: Text('Seu carrinho está vazio.')));
+      return;
+    }
+
+    bool algumaCompraFeita = false;
+    for (var item in itens) {
+      final sucesso = await widget.controller.finalizarCompra(
+        user!.uid,
+        item.idDono,
+      );
+      if (sucesso) {
+        algumaCompraFeita = true;
+      }
+    }
+
+    if (algumaCompraFeita) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Compras finalizadas com sucesso!')),
+      );
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Seu carrinho está vazio.')));
+      ).showSnackBar(SnackBar(content: Text('Nenhuma compra foi realizada.')));
     }
 
     setState(() {});
@@ -177,7 +195,9 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                             'Finalizar Compra',
                             style: TextStyle(fontSize: 16),
                           ),
-                          onPressed: _handleFinalizarCompra,
+                          onPressed: () {
+                            _handleFinalizarCompra();
+                          },
                         ),
                       ],
                     ),
