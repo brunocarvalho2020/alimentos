@@ -7,6 +7,7 @@ import 'views/login.dart';
 import 'views/home.dart';
 import 'firebase_options.dart';
 import 'views/analises.dart';
+import 'views/pedidos_dono.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +33,7 @@ void main() async {
         '/gerenciar-estabelecimento': (context) => ManageStoreScreen(),
         '/adicionar-endereco': (context) => AdicionarEnderecoView(),
         '/estatisticas': (_) => EstatisticasScreen(),
+        '/pedidos': (context) => const PedidosScreen(),
       },
     ),
   );

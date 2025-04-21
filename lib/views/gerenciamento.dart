@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../controllers/gerenciamento_controller.dart';
 import 'analises.dart';
+import 'pedidos_dono.dart';
 
 class ManageStoreScreen extends StatefulWidget {
   const ManageStoreScreen({super.key});
@@ -117,31 +118,78 @@ class _ManageStoreScreenState extends State<ManageStoreScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Nome: ${userData!['name']}',
-                      style: TextStyle(fontSize: 18),
+                    Card(
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Informações do Estabelecimento',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Nome: ${userData!['name']}',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            Text(
+                              'E-mail: ${userData!['email']}',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            Text(
+                              'Tipo: ${userData!['userType']}',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            Text(
+                              'Criado em: ${userData!['createdAt'].toDate().toString().split('.')[0]}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
+                    SizedBox(height: 20),
                     Text(
-                      'E-mail: ${userData!['email']}',
-                      style: TextStyle(fontSize: 18),
+                      'Gerenciamento',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    Text(
-                      'Tipo: ${userData!['userType']}',
-                      style: TextStyle(fontSize: 18),
+                    SizedBox(height: 10),
+                    _buildMenuOption(
+                      icon: Icons.add_business,
+                      title: 'Adicionar produto',
+                      onTap: () => _recebeProduto(context),
                     ),
-                    Text(
-                      'Criado em: ${userData!['createdAt'].toDate().toString().split('.')[0]}',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                    ),
-                    SizedBox(height: 30),
-                    ElevatedButton.icon(
-                      onPressed: () => _recebeProduto(context),
-                      icon: Icon(Icons.add_business),
-                      label: Text('Adicionar produto'),
+                    _buildMenuOption(
+                      icon: Icons.shopping_bag,
+                      title: 'Gerenciar Pedidos',
+                      subtitle: 'Visualize pedidos pendentes e finalizados',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => PedidosScreen()),
+                        );
+                      },
                     ),
                     if (userData!['userType'] == 'dono')
-                      ElevatedButton.icon(
-                        onPressed: () {
+                      _buildMenuOption(
+                        icon: Icons.bar_chart,
+                        title: 'Análises de Dados',
+                        subtitle: 'Visualize estatísticas de vendas',
+                        onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -149,17 +197,77 @@ class _ManageStoreScreenState extends State<ManageStoreScreen> {
                             ),
                           );
                         },
-                        icon: Icon(Icons.bar_chart),
-                        label: Text('Ver análises de dados'),
                       ),
-                    SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text('Voltar'),
+                    SizedBox(height: 20),
+                    Align(
+                      alignment: Alignment.center,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 12,
+                          ),
+                        ),
+                        child: Text('Voltar'),
+                      ),
                     ),
                   ],
                 ),
               ),
+    );
+  }
+
+  Widget _buildMenuOption({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 2,
+      margin: EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: Colors.blue),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (subtitle != null)
+                      Text(
+                        subtitle,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
