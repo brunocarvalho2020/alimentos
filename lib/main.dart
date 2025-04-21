@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:teste_app/views/endereco.dart';
 import 'package:teste_app/views/gerenciamento.dart';
 import 'package:teste_app/views/minha_conta.dart';
+import 'package:teste_app/views/pedidos_cliente.dart';
 import 'views/login.dart';
 import 'views/home.dart';
 import 'firebase_options.dart';
@@ -31,6 +32,7 @@ void main() async {
         '/minha-conta': (context) => MinhaContaView(),
         '/home': (_) => HomeView(),
         '/gerenciar-estabelecimento': (context) => ManageStoreScreen(),
+        '/pedido-cliente': (context) => const PedidoClienteScreen(),
         '/adicionar-endereco': (context) => AdicionarEnderecoView(),
         '/estatisticas': (_) => EstatisticasScreen(),
         '/pedidos': (context) => const PedidosScreen(),

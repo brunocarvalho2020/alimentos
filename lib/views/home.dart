@@ -60,33 +60,86 @@ class _HomeViewState extends State<HomeView> {
 
         return Scaffold(
           appBar: AppBar(
-            leading: PopupMenuButton<String>(
-              icon: Icon(Icons.more_vert, color: Colors.white),
-              onSelected: (value) async {
-                if (value == 'conta') {
-                  Navigator.pushNamed(context, '/minha-conta');
-                } else if (value == 'sair') {
-                  await homeController.logout();
-                  setState(() {});
-                }
-              },
-              itemBuilder:
-                  (context) => [
-                    PopupMenuItem(value: 'conta', child: Text('Minha conta')),
-                    PopupMenuItem(value: 'sair', child: Text('Sair')),
-                  ],
-            ),
-            title: Center(
-              child: Text(
-                'Olá, ${homeController.userName ?? 'Visitante'}!',
-                style: TextStyle(color: Colors.white),
-              ),
+            toolbarHeight: 70, // aumenta a altura da AppBar
+            elevation: 4,
+            centerTitle: false,
+            title: Row(
+              children: [
+                const SizedBox(width: 8),
+                Text(
+                  'Olá, ${homeController.userName ?? 'Visitante'}',
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ],
             ),
             actions: [
+              if (homeController.currentUser != null) ...[
+                IconButton(
+                  tooltip: 'Minha conta',
+                  icon: const Icon(
+                    Icons.account_circle_outlined,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/minha-conta');
+                  },
+                ),
+                IconButton(
+                  tooltip: 'Meus pedidos',
+                  icon: const Icon(
+                    Icons.receipt_long_outlined,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/pedido-cliente');
+                  },
+                ),
+                IconButton(
+                  tooltip: 'Sair',
+                  icon: const Icon(Icons.logout, color: Colors.white, size: 28),
+                  onPressed: () async {
+                    final sair = await showDialog<bool>(
+                      context: context,
+                      builder:
+                          (context) => AlertDialog(
+                            title: const Text('Confirmação'),
+                            content: const Text(
+                              'Tem certeza que deseja sair da sua conta?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed:
+                                    () => Navigator.of(context).pop(false),
+                                child: const Text('Cancelar'),
+                              ),
+                              ElevatedButton(
+                                onPressed:
+                                    () => Navigator.of(context).pop(true),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                ),
+                                child: const Text('Sair'),
+                              ),
+                            ],
+                          ),
+                    );
+
+                    if (sair == true) {
+                      await homeController.logout();
+                      setState(() {});
+                    }
+                  },
+                ),
+              ],
               Stack(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.shopping_cart, color: Colors.white),
+                    tooltip: 'Carrinho',
+                    icon: const Icon(
+                      Icons.shopping_cart_outlined,
+                      color: Colors.white,
+                    ),
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -99,26 +152,35 @@ class _HomeViewState extends State<HomeView> {
                       );
                     },
                   ),
-                  if (carrinhoController.itens.length > 0)
+                  if (carrinhoController.itens.isNotEmpty)
                     Positioned(
-                      right: 1,
-                      top: 1,
+                      right: 4,
+                      top: 4,
                       child: Container(
-                        padding: EdgeInsets.all(4),
-                        decoration: BoxDecoration(
+                        padding: const EdgeInsets.all(5),
+                        decoration: const BoxDecoration(
                           color: Colors.red,
                           shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 2,
+                              offset: Offset(1, 1),
+                            ),
+                          ],
                         ),
-                        constraints: BoxConstraints(minWidth: 6, minHeight: 6),
                         child: Text(
                           '${carrinhoController.itens.length}',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
-                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                          ),
                         ),
                       ),
                     ),
                 ],
               ),
+              const SizedBox(width: 8),
             ],
           ),
 
