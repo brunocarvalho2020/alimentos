@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/carrinho_model.dart';
 
 class CarrinhoController {
@@ -12,18 +13,11 @@ class CarrinhoController {
 
   void adicionar(CarrinhoItem novoItem) {
     final existente = _itens.indexWhere((item) => item.nome == novoItem.nome);
-
     if (existente != -1) {
       _itens[existente].quantidade += 1;
     } else {
-      // Força a quantidade a iniciar com 1
       _itens.add(
-        CarrinhoItem(
-          nome: novoItem.nome,
-          preco: novoItem.preco,
-          //imagem: novoItem.imagem,
-          quantidade: 1,
-        ),
+        CarrinhoItem(nome: novoItem.nome, preco: novoItem.preco, quantidade: 1),
       );
     }
   }
@@ -36,16 +30,33 @@ class CarrinhoController {
     if (_itens[index].quantidade > 1) {
       _itens[index].quantidade--;
     } else {
-      remover(index); // remove do carrinho se for 1
+      remover(index);
     }
   }
 
   void remover(int index) => _itens.removeAt(index);
+
   void limpar() => _itens.clear();
 
-  bool finalizarCompra() {
+  /// FINALIZA COMPRA E SALVA NO FIRESTORE
+  Future<bool> finalizarCompra(String usuarioId) async {
     if (_itens.isEmpty) return false;
-    _itens.clear();
-    return true;
+
+    try {
+      final pedido = {
+        'usuarioId': usuarioId,
+        'itens': _itens.map((item) => item.toMap()).toList(),
+        'total': total,
+        'data': Timestamp.now(),
+        'entregue': false, // campo que você pediu
+      };
+
+      await FirebaseFirestore.instance.collection('pedidos').add(pedido);
+      _itens.clear();
+      return true;
+    } catch (e) {
+      print('Erro ao finalizar pedido: $e');
+      return false;
+    }
   }
 }

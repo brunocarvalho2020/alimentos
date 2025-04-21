@@ -20,9 +20,9 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
       if (shouldContinue != true) return;
     }
 
-    final sucesso = widget.controller.finalizarCompra();
+    final sucesso = widget.controller.finalizarCompra(user!.uid);
 
-    if (sucesso) {
+    if (await sucesso) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Compra finalizada com sucesso!')));
