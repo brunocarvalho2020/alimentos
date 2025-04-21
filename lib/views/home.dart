@@ -103,18 +103,6 @@ class _HomeViewState extends State<HomeView> {
                   child: Column(
                     children: [
                       SizedBox(height: 20),
-                      Text(
-                        homeController.currentUser != null
-                            ? 'Você está logado!'
-                            : 'Bem-vindo!\nFaça login para acessar mais recursos.',
-                        style: GoogleFonts.roboto(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.teal[800],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 20),
                       if (homeController.userType == 'dono')
                         ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
@@ -127,7 +115,7 @@ class _HomeViewState extends State<HomeView> {
                               borderRadius: BorderRadius.circular(30),
                             ),
                           ),
-                          icon: Icon(Icons.store),
+                          icon: Icon(Icons.store, color: Colors.white),
                           label: Text(
                             'Gerenciar meu estabelecimento',
                             style: TextStyle(color: Colors.white),
