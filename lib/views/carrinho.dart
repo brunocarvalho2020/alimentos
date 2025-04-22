@@ -20,7 +20,7 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
       if (shouldContinue != true) return;
     }
 
-    final itens = widget.controller.itens;
+    final itens = List.from(widget.controller.itens); // Cria uma cópia da lista
 
     if (itens.isEmpty) {
       ScaffoldMessenger.of(
@@ -35,23 +35,28 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
         user!.uid,
         item.idDono,
       );
+      print("sucesso: $sucesso");
       if (sucesso) {
         algumaCompraFeita = true;
       }
     }
-
+    print("sucesso: $algumaCompraFeita");
     if (algumaCompraFeita) {
+      // Exibe a mensagem de sucesso primeiro
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Compras finalizadas com sucesso!')),
       );
-      Navigator.pop(context);
+
+      // Agora realiza a navegação
+      Navigator.pop(context, true); // Retorna para a tela anterior
     } else {
+      // Caso não tenha feito nenhuma compra
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Nenhuma compra foi realizada.')));
     }
 
-    setState(() {});
+    setState(() {}); // Se necessário, atualize o estado após a navegação
   }
 
   @override
@@ -60,7 +65,16 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
     final isEmpty = widget.controller.estaVazio;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Carrinho de Compras'), centerTitle: true),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // Passa o valor 'true' para indicar que os itens foram removidos
+            Navigator.pop(context, true);
+          },
+        ),
+        title: Text('Carrinho'),
+      ),
       body:
           isEmpty
               ? Center(
@@ -129,6 +143,9 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                                               index,
                                             );
                                           });
+                                          if (itens.isEmpty) {
+                                            Navigator.pop(context, true);
+                                          }
                                         },
                                       ),
                                       Text('${item.quantidade}'),

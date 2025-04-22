@@ -17,6 +17,7 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  bool _isloading = false;
   final HomeController homeController = HomeController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -140,8 +141,9 @@ class _HomeViewState extends State<HomeView> {
                       Icons.shopping_cart_outlined,
                       color: Colors.white,
                     ),
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      // Aguarda a resposta da tela CarrinhoScreen
+                      final resultado = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder:
@@ -150,8 +152,17 @@ class _HomeViewState extends State<HomeView> {
                               ),
                         ),
                       );
+
+                      // Verifica se o usuário finalizou a compra (resultado == true)
+                      if (resultado == true) {
+                        setState(() {
+                          // Atualiza o estado do carrinho ou o contador de itens, conforme necessário
+                          // Por exemplo, limpar o carrinho ou atualizar o ícone
+                        });
+                      }
                     },
                   ),
+
                   if (carrinhoController.itens.isNotEmpty)
                     Positioned(
                       right: 4,
@@ -186,204 +197,233 @@ class _HomeViewState extends State<HomeView> {
 
           body: Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Column(
-                    children: [
-                      SizedBox(height: 20),
-                      if (homeController.userType == 'dono')
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal[600],
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          icon: Icon(Icons.store, color: Colors.white),
-                          label: Text(
-                            'Gerenciar meu estabelecimento',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          onPressed: () {
-                            Navigator.pushNamed(
-                              context,
-                              '/gerenciar-estabelecimento',
-                            );
-                          },
-                        ),
-                      if (homeController.currentUser == null)
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal[600],
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          icon: Icon(Icons.login),
-                          label: Text(
-                            'Fazer login',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          onPressed: () async {
-                            final result = await Navigator.pushNamed(
-                              context,
-                              '/login',
-                            );
-                            if (result == true) {
-                              await homeController.loadUserData();
-                              if (mounted) setState(() {});
-                            }
-                          },
-                        ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 30),
-                Text(
-                  'Produtos disponíveis:',
-                  style: GoogleFonts.roboto(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
-                  ),
-                ),
-                SizedBox(height: 10),
-                Expanded(
-                  child: FutureBuilder<Map<String, List<Map<String, dynamic>>>>(
-                    future: homeController.getProdutosAgrupadosPorLoja(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      }
-
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return Center(
-                          child: Text('Nenhum produto encontrado.'),
-                        );
-                      }
-
-                      final lojas = snapshot.data!;
-
-                      return ListView(
-                        children:
-                            lojas.entries.map((entry) {
-                              final nomeLoja = entry.key;
-                              final produtos = entry.value;
-
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 24.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      nomeLoja,
-                                      style: GoogleFonts.roboto(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.teal[800],
-                                      ),
+            child:
+                _isloading
+                    ? const Center(child: CircularProgressIndicator())
+                    : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Column(
+                            children: [
+                              SizedBox(height: 20),
+                              if (homeController.userType == 'dono')
+                                ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal[600],
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
                                     ),
-                                    SizedBox(height: 10),
-                                    SizedBox(
-                                      height: 220,
-                                      child: PageView.builder(
-                                        controller: PageController(
-                                          viewportFraction: 0.85,
-                                        ),
-                                        itemCount: produtos.length,
-                                        itemBuilder: (context, index) {
-                                          final produto = produtos[index];
-                                          return Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                            ),
-                                            child: Card(
-                                              elevation: 6,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-                                              ),
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(
-                                                  12.0,
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      produto['nome'] ?? '',
-                                                      style: TextStyle(
-                                                        fontSize: 18,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 6),
-                                                    Text(
-                                                      produto['descricao'] ??
-                                                          '',
-                                                    ),
-                                                    const SizedBox(height: 6),
-                                                    Text(
-                                                      'R\$ ${produto['preco']?.toStringAsFixed(2) ?? '0.00'}',
-                                                    ),
-                                                    Text(
-                                                      'Estoque: ${produto['quantidade'] ?? 0}',
-                                                    ),
-                                                    Spacer(),
-                                                    Align(
-                                                      alignment:
-                                                          Alignment.bottomRight,
-                                                      child: ElevatedButton(
-                                                        style: ElevatedButton.styleFrom(
-                                                          backgroundColor:
-                                                              Colors.teal[600],
-                                                          shape: CircleBorder(),
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                12,
-                                                              ),
-                                                        ),
-                                                        onPressed: () {
-                                                          adicionarAoCarrinho(
-                                                            produto,
-                                                          );
-                                                        },
-                                                        child: Icon(
-                                                          Icons.add,
-                                                          color: Colors.white,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
                                     ),
-                                  ],
+                                  ),
+                                  icon: Icon(Icons.store, color: Colors.white),
+                                  label: Text(
+                                    'Gerenciar meu estabelecimento',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/gerenciar-estabelecimento',
+                                    );
+                                  },
                                 ),
+                              if (homeController.currentUser == null)
+                                ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal[600],
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                  ),
+                                  icon: Icon(Icons.login),
+                                  label: Text(
+                                    'Fazer login',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  onPressed: () async {
+                                    final result = await Navigator.pushNamed(
+                                      context,
+                                      '/login',
+                                    );
+                                    if (result == true) {
+                                      await homeController.loadUserData();
+                                      if (mounted) setState(() {});
+                                    }
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 30),
+                        Text(
+                          'Produtos disponíveis:',
+                          style: GoogleFonts.roboto(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Expanded(
+                          child: FutureBuilder<
+                            Map<String, List<Map<String, dynamic>>>
+                          >(
+                            future:
+                                homeController.getProdutosAgrupadosPorLoja(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              }
+
+                              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                return Center(
+                                  child: Text('Nenhum produto encontrado.'),
+                                );
+                              }
+
+                              final lojas = snapshot.data!;
+
+                              return ListView(
+                                children:
+                                    lojas.entries.map((entry) {
+                                      final nomeLoja = entry.key;
+                                      final produtos = entry.value;
+
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 24.0,
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              nomeLoja,
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.teal[800],
+                                              ),
+                                            ),
+                                            SizedBox(height: 10),
+                                            SizedBox(
+                                              height: 220,
+                                              child: PageView.builder(
+                                                controller: PageController(
+                                                  viewportFraction: 0.85,
+                                                ),
+                                                itemCount: produtos.length,
+                                                itemBuilder: (context, index) {
+                                                  final produto =
+                                                      produtos[index];
+                                                  return Padding(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                        ),
+                                                    child: Card(
+                                                      elevation: 6,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              16,
+                                                            ),
+                                                      ),
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              12.0,
+                                                            ),
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                              produto['nome'] ??
+                                                                  '',
+                                                              style: TextStyle(
+                                                                fontSize: 18,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                              height: 6,
+                                                            ),
+                                                            Text(
+                                                              produto['descricao'] ??
+                                                                  '',
+                                                            ),
+                                                            const SizedBox(
+                                                              height: 6,
+                                                            ),
+                                                            Text(
+                                                              'R\$ ${produto['preco']?.toStringAsFixed(2) ?? '0.00'}',
+                                                            ),
+                                                            Text(
+                                                              'Estoque: ${produto['quantidade'] ?? 0}',
+                                                            ),
+                                                            Spacer(),
+                                                            Align(
+                                                              alignment:
+                                                                  Alignment
+                                                                      .bottomRight,
+                                                              child: ElevatedButton(
+                                                                style: ElevatedButton.styleFrom(
+                                                                  backgroundColor:
+                                                                      Colors
+                                                                          .teal[600],
+                                                                  shape:
+                                                                      CircleBorder(),
+                                                                  padding:
+                                                                      EdgeInsets.all(
+                                                                        12,
+                                                                      ),
+                                                                ),
+                                                                onPressed: () {
+                                                                  adicionarAoCarrinho(
+                                                                    produto,
+                                                                  );
+                                                                },
+                                                                child: Icon(
+                                                                  Icons.add,
+                                                                  color:
+                                                                      Colors
+                                                                          .white,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
                               );
-                            }).toList(),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
           ),
         );
       },
