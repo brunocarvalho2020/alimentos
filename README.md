@@ -3,7 +3,7 @@
 
 ## 1. Informações Gerais
 
-- **Nome do projeto:** Alimentos
+- **Nome do projeto:** []
 - **Stack principal:** Flutter (Dart), Firebase (Firestore, Auth, Storage)
 - **Finalidade:** Aplicativo de delivery com funcionalidades administrativas e analíticas para estabelecimentos.
 
@@ -18,7 +18,7 @@ O projeto segue uma arquitetura baseada em separação por camadas:
 
 ## 3. Gerenciamento de Estado
 
-Utiliza **Provider** para gerenciamento de estado global dos modelos `CarrinhoModel`, `AuthController` e `PedidoController`. Cada controller implementa `ChangeNotifier`.
+Gerenciamento de estado global dos modelos (`CarrinhoModel`, `AuthController` e `PedidoController`), feito manualmente.
 
 ## 4. Dependências Principais (pubspec.yaml)
 
@@ -66,64 +66,114 @@ dependencies:
 
 ## 6. Modelos
 
-### ProdutoModel
+### CarrinhoModel
 
 ```dart
-class Produto {
-  final String id;
+class CarrinhoItem {
   final String nome;
   final double preco;
-  final List<String> imagens;
-  final String donoId;
+  final String idDono;
+  int quantidade;
 }
 ```
 
-### PedidoModel
+### EnderecoModel
 
 ```dart
-class Pedido {
+class Endereco {
+  final String rua;
+  final String numero;
+  final String bairro;
+  final String cidade;
+  final String estado;
+  final String cep;
+  final String? complemento;
+  final String? id;
+}
+```
+
+### PedidosModel
+```dart
+class PedidoModel {
   final String id;
-  final String clienteId;
-  final String donoId;
-  final List<Produto> produtos;
-  final String status; // 'pendente' ou 'finalizado'
+  final String idDono;
+  final String usuarioId;
+  final String nome;
+  final double preco;
+  final int quantidade;
+  final double total;
   final DateTime data;
+  final bool entregue;
+}
+```
+
+### UserModel
+```dart
+class Usuario {
+  final String email;
+  final String senha;
+
+  Usuario({required this.email, required this.senha});
 }
 ```
 
 ## 7. Controllers
 
-### AuthController
-
-- Login, logout e verificação de tipo de usuário (cliente ou dono)
-- Utiliza FirebaseAuth
-
-### ProdutoController
-
-- CRUD de produtos
-- Upload de imagens no Storage
-- Armazena links no Firestore
-
 ### CarrinhoController
 
-- Adição e remoção de produtos
-- Totalização
-- Geração de pedido a partir do carrinho
+- Controla uma lista local de CarrinhoItem.
+- Calcula o total dinamicamente.
+- Envia cada item como pedido individual no Firestore (finalizarCompra()).
+- Importante: Nenhuma sincronização contínua com Firestore — tudo é feito sob demanda.
 
-### PedidoController
+### EnderecoController
 
-- Registro e atualização do status dos pedidos
-- Consulta por donoId ou clienteId
+- Gerencia CRUD completo dos endereços do usuário autenticado.
+- Usa validações manuais para garantir que apenas o dono possa alterar/remover endereços.
+- Usa FirebaseAuth.instance.currentUser?.uid.
+
+### GerenciamentoController
+
+- Funções para o dono da loja:
+  - Cadastro de produto
+  - Marcar pedido como entregue
+  - Relatórios (totais, vendas finalizadas)
+
+- Observações: obterTotaisPedidos() e obterTotalVendas() realizam consultas agregadas manuais.
+
+### HomeController
+
+- Carrega dados do usuário atual (nome, tipo).
+- Permite logout.
+- Agrupa produtos por loja (útil para UI com seções de "Restaurantes").
+
+### LoginController
+
+- Apenas autenticação, delegada para AuthService.
+- Simples, direto ao ponto.
+
+### MinhaContaController
+- Funções para clientes:
+
+  - Carregar dados pessoais
+  - Listar endereços e pedidos
+  - Remover endereços
+
+- Usa UID passado como parâmetro.
 
 ## 8. Fluxo de Telas
 
 1. **Login/Register**
 2. **HomeView** – Lista produtos disponíveis
 3. **Carrinho** – Finalização de pedido
-4. **PedidosClienteView** – Histórico do cliente
-5. **PedidosDonoView** – Gerência de pedidos
+4. **PedidosClienteView/PedidosDonoView** – Histórico do cliente e gerência de pedidos, respectivamente
+5. **MinhaConta** - Gerenciamento, pedidos, endereços e análises
+6. **EnderecoView** - Controle de endereços
+7. **GerenciamentoView** - Análises de dados, pedidos e produtos
+8. **AnalisesView** - Visualização das análises (gráficos, projeções, etc)
 
-## 9. Firestore – Estrutura Esperada
+
+## 9. Estruturas Firestore
 
 ### /usuarios
 
@@ -159,6 +209,32 @@ class Pedido {
 }
 ```
 
+### /carrinho
+
+```json
+{
+  "nome": "Hamburguer",
+  "preco": 25.0,
+  "quantidade": 2,
+  "idDono": "uid_do_dono"
+}
+```
+
+### /endereco
+
+```json
+{
+  "usuarioId": "uid_do_usuario",
+  "rua": "Rua XYZ",
+  "numero": "123",
+  "bairro": "Bairro ABC",
+  "cidade": "Cidade DEF",
+  "estado": "Estado GHI",
+  "cep": "12345-678",
+  "complemento": "Apt 101"
+}
+```
+
 ## 10. Pontos Importantes
 
 - StreamBuilder para refletir mudanças em tempo real
@@ -173,3 +249,18 @@ class Pedido {
 - Sistema de avaliações
 - Multi-loja com localização
 - Dashboard analítico avançado
+
+## 12. Estratégia de Gerenciamento de Estado
+
+Este projeto AINDA não utiliza bibliotecas externas como Provider.
+
+- Os controllers são classes independentes com métodos diretos.
+- O estado é atualizado por chamadas explícitas via setState nas views.
+- Dados em tempo real do Firestore são acessados via `StreamBuilder` diretamente nas views.
+- As operações de escrita/leitura no Firestore são encapsuladas em cada controller.
+
+### Exemplo: `CarrinhoController`
+
+- Os itens são armazenados localmente numa lista.
+- Ao finalizar a compra, cada item é transformado em um documento de pedido.
+- Não há sincronização contínua com Firestore, exceto nas telas que usam `StreamBuilder`.
